@@ -1,0 +1,13 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="48" fill="#0F172A"/>
+  <circle cx="260" cy="190" r="150" fill="#14B8A6" fill-opacity="0.22"/>
+  <circle cx="945" cy="620" r="190" fill="#F97316" fill-opacity="0.18"/>
+  <path d="M170 510C330 350 605 290 855 365C994 407 1066 484 1088 536" stroke="#F8FAFC" stroke-opacity="0.26" stroke-width="2"/>
+  <path d="M120 560C280 400 575 340 830 412C956 447 1038 511 1080 565" stroke="#F8FAFC" stroke-opacity="0.38" stroke-width="2"/>
+  <circle cx="721" cy="410" r="74" fill="#F8FAFC" fill-opacity="0.92"/>
+  <circle cx="721" cy="410" r="24" fill="#0F172A"/>
+  <path d="M236 618H523" stroke="#F8FAFC" stroke-opacity="0.7" stroke-width="8" stroke-linecap="round"/>
+  <path d="M236 652H708" stroke="#F8FAFC" stroke-opacity="0.35" stroke-width="8" stroke-linecap="round"/>
+  <text x="236" y="200" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="34" letter-spacing="8">CIENCIAS ESPACIAIS</text>
+  <text x="236" y="270" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="80" font-weight="700">Orbita, clima e dados</text>
+</svg>

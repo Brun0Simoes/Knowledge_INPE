@@ -1,0 +1,111 @@
+import { CourseStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
+
+import { forbidden, getApiUser, unauthorized } from "@/lib/access";
+import { invalidateCalendarEventsCache } from "@/lib/calendar-events";
+import { clearPublishedFeaturedCourses } from "@/lib/courses";
+import { queueCoursePublicationEmail, triggerEmailBatchProcessing } from "@/lib/mailer";
+import { createCoursePublicationNotification } from "@/lib/notifications";
+import { prisma } from "@/lib/prisma";
+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(_: Request, { params }: RouteContext) {
+  const user = await getApiUser();
+  if (!user) {
+    return unauthorized();
+  }
+
+  if (user.role !== "ADMIN") {
+    return forbidden();
+  }
+
+  const { id } = await params;
+  const course = await prisma.course.findUnique({
+    where: { id },
+    include: {
+      images: true,
+    },
+  });
+
+  if (!course) {
+    return NextResponse.json({ error: "Curso nao encontrado." }, { status: 404 });
+  }
+
+  if (course.images.length === 0) {
+    return NextResponse.json(
+      { error: "Adicione ao menos uma imagem antes de publicar." },
+      { status: 400 },
+    );
+  }
+
+  const wasPublished = course.status === CourseStatus.PUBLISHED;
+
+  const publishedCourse = await prisma.$transaction(async (tx) => {
+    const published = await tx.course.update({
+      where: { id: course.id },
+      data: {
+        status: CourseStatus.PUBLISHED,
+        publishedAt: course.publishedAt ?? new Date(),
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        externalUrl: true,
+      },
+    });
+
+    if (course.isFeatured) {
+      await clearPublishedFeaturedCourses(published.id, tx);
+    }
+
+    return published;
+  });
+
+  let batchId: string | null = null;
+
+  if (!wasPublished) {
+    const recipients = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        notificationOptIn: true,
+      },
+    });
+
+    await createCoursePublicationNotification({
+      course: publishedCourse,
+      createdById: user.id,
+      recipients: recipients.map((recipient) => ({ id: recipient.id })),
+    });
+
+    const batch = await queueCoursePublicationEmail({
+      course: publishedCourse,
+      createdById: user.id,
+      recipients: recipients.filter((recipient) => recipient.notificationOptIn),
+    });
+
+    batchId = batch.id;
+    triggerEmailBatchProcessing(batch.id);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/notifications");
+  revalidatePath("/admin/courses");
+  revalidatePath("/admin/analytics");
+  revalidatePath(`/courses/${publishedCourse.slug}`);
+  invalidateCalendarEventsCache();
+
+  return NextResponse.json({
+    batchId,
+    alreadyPublished: wasPublished,
+    message: wasPublished
+      ? "Curso ja estava publicado. O status foi mantido."
+      : "Curso publicado com sucesso.",
+  });
+}

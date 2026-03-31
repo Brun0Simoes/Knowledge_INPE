@@ -20,9 +20,18 @@
 # production
 /build
 
+# local databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # misc
 .DS_Store
 *.pem
+.playwright-cli/
+output/
+public/uploads/
 
 # debug
 npm-debug.log*
@@ -39,3 +48,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma

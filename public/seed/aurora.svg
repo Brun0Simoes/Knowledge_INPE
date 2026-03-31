@@ -1,0 +1,16 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="800" rx="48" fill="#111827"/>
+  <path d="M120 518C221 414 330 356 482 344C636 331 731 396 862 416C985 434 1051 408 1128 326V800H120V518Z" fill="url(#paint0_linear_1_3)"/>
+  <path d="M120 458C236 316 349 266 492 268C662 271 780 380 918 390C1004 396 1078 366 1128 330" stroke="#99F6E4" stroke-opacity="0.85" stroke-width="12" stroke-linecap="round"/>
+  <path d="M120 524C212 418 337 373 485 379C633 385 727 444 864 458C969 468 1056 439 1128 391" stroke="#FDBA74" stroke-opacity="0.75" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="248" cy="178" r="68" fill="#F8FAFC" fill-opacity="0.94"/>
+  <circle cx="248" cy="178" r="18" fill="#111827"/>
+  <text x="120" y="128" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="34" letter-spacing="7">Moodle CPTEC / INPE</text>
+  <text x="120" y="210" fill="#F8FAFC" font-family="Arial, sans-serif" font-size="76" font-weight="700">Auroras, ionosfera e previsao</text>
+  <defs>
+    <linearGradient id="paint0_linear_1_3" x1="624" y1="316" x2="624" y2="800" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14B8A6" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#0F172A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>
