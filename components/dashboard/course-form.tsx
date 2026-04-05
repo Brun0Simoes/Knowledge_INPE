@@ -138,6 +138,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
     let active = true;
 
     async function hydrateDraft() {
+      // The editor restores its local draft on mount so accidental reloads behave
+      // like Gmail-style draft recovery.
       const persisted = await loadCourseDraftFromStorage(storageKey);
       if (!active) {
         return;
@@ -188,6 +190,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
 
     const hasDraft = hasMeaningfulCourseDraft(formState, selectedFiles);
     const nextSavedAt = new Date().toISOString();
+    // Debounce local persistence so long descriptions do not hammer storage APIs
+    // on every keystroke.
     const timeout = window.setTimeout(() => {
       if (!hasDraft) {
         void clearCourseDraftStorage(storageKey);
@@ -217,6 +221,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
       return;
     }
 
+    // beforeunload/pagehide acts as the last safety net when the user leaves the
+    // page before the debounce window finishes.
     const flushDraft = () => {
       const snapshot = latestStateRef.current;
       const files = latestFilesRef.current;
@@ -309,31 +315,37 @@ export function CourseForm({ mode, course }: CourseFormProps) {
       payload.append("imageFiles", file);
     }
 
-    const response = await fetch(endpoint, {
-      method,
-      body: payload,
-    });
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        body: payload,
+      });
 
-    const result = (await response.json().catch(() => null)) as { id?: string; error?: string } | null;
+      const result = (await response.json().catch(() => null)) as { id?: string; error?: string } | null;
 
-    if (!response.ok) {
-      setError(result?.error ?? "Nao foi possivel salvar o curso.");
+      if (!response.ok) {
+        setError(result?.error ?? "Nao foi possivel salvar o curso.");
+        setPending(false);
+        return;
+      }
+
+      await clearCourseDraftStorage(storageKey);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      startTransition(() => {
+        if (mode === "create" && result?.id) {
+          router.push(`/admin/courses/${result.id}/edit`);
+        } else {
+          router.refresh();
+        }
+      });
+    } catch {
+      setError("Nao foi possivel salvar o curso.");
       setPending(false);
       return;
     }
-
-    await clearCourseDraftStorage(storageKey);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-
-    startTransition(() => {
-      if (mode === "create" && result?.id) {
-        router.push(`/admin/courses/${result.id}/edit`);
-      } else {
-        router.refresh();
-      }
-    });
 
     setPending(false);
   }

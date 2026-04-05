@@ -55,6 +55,8 @@ export async function queueCoursePublicationEmail({
   const mailerConfigured = isMailerConfigured();
   const runtimeConfig = getMailRuntimeConfig();
 
+  // Batch rows are created first so publishing a course never depends on live SMTP
+  // latency and can be resumed after restarts.
   return prisma.$transaction(async (tx) => {
     const batch = await tx.emailBatch.create({
       data: {
@@ -191,6 +193,8 @@ function dedupeRecipients(recipients: PublishPayload["recipients"]) {
 }
 
 async function ensureLegacyQueueCompatibility() {
+  // Older test runs marked recipients as SKIPPED when SMTP was absent. The current
+  // queue model keeps them retryable, so we normalize legacy rows only once.
   if (!globalForMailer.legacyQueueNormalization) {
     globalForMailer.legacyQueueNormalization = (async () => {
       await prisma.emailBatchRecipient.updateMany({
@@ -301,6 +305,8 @@ function isMailerConfigured() {
 }
 
 async function claimEmailBatch(batchId: string | undefined, staleMinutes: number) {
+  // Claiming uses a compare-and-swap style update so multiple background workers
+  // do not process the same batch at the same time.
   const staleBefore = new Date(Date.now() - staleMinutes * 60_000);
 
   const candidate = batchId
@@ -444,6 +450,8 @@ async function sendCoursePublicationMessage(
   recipientId: string,
   mailer: MailTransportBundle,
 ) {
+  // Recipients move through explicit states (PENDING -> PROCESSING -> SENT/FAILED)
+  // so the queue can recover safely after crashes or SMTP throttling.
   const recipient = await prisma.emailBatchRecipient.findUnique({
     where: { id: recipientId },
     select: {
@@ -646,6 +654,8 @@ async function recoverStaleProcessingRecipients(
 }
 
 async function drainBatchInBackground(batchId: string) {
+  // Background draining is bounded to avoid an infinite loop if the provider keeps
+  // rejecting deliveries or the daily limit has been reached.
   const maxIterations = getPositiveInteger("EMAIL_BACKGROUND_MAX_ITERATIONS", 50);
 
   for (let iteration = 0; iteration < maxIterations; iteration += 1) {

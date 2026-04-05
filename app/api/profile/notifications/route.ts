@@ -13,7 +13,7 @@ export async function PATCH(request: Request) {
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const parsed = notificationPreferenceSchema.safeParse({
-    notificationOptIn: Boolean(body?.notificationOptIn),
+    notificationOptIn: body?.notificationOptIn,
   });
 
   if (!parsed.success) {

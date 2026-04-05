@@ -15,6 +15,8 @@ export async function createCoursePublicationNotification({
   createdById,
   recipients,
 }: CoursePublicationNotificationPayload) {
+  // Recipient rows are chunked to stay under SQLite parameter limits when the
+  // platform fan-outs to a large audience.
   return prisma.$transaction(async (tx) => {
     const notification = await tx.notification.create({
       data: {

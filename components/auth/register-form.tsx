@@ -41,33 +41,37 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
     setError(null);
 
     startTransition(async () => {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
 
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      if (!response.ok) {
-        setError(payload?.error ?? messages.auth.registerError);
-        return;
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        if (!response.ok) {
+          setError(payload?.error ?? messages.auth.registerError);
+          return;
+        }
+
+        const result = await signIn("credentials", {
+          email: values.email,
+          password: values.password,
+          callbackUrl: safeCallbackUrl,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError(messages.auth.autoSignInError);
+          return;
+        }
+
+        window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
+      } catch {
+        setError(messages.auth.registerError);
       }
-
-      const result = await signIn("credentials", {
-        email: values.email,
-        password: values.password,
-        callbackUrl: safeCallbackUrl,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(messages.auth.autoSignInError);
-        return;
-      }
-
-      window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
     });
   });
 

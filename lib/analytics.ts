@@ -18,8 +18,19 @@ type AnalyticsCourse = {
 };
 
 export function summarizeCourse(course: AnalyticsCourse) {
-  const views = course.events.filter((event) => event.type === CourseEventType.VIEW).length;
-  const clicks = course.events.filter((event) => event.type === CourseEventType.CLICK_EXTERNAL).length;
+  // Aggregate event counters in one pass so analytics pages stay cheap even when
+  // the interaction history grows.
+  let views = 0;
+  let clicks = 0;
+
+  for (const event of course.events) {
+    if (event.type === CourseEventType.VIEW) {
+      views += 1;
+    } else if (event.type === CourseEventType.CLICK_EXTERNAL) {
+      clicks += 1;
+    }
+  }
+
   const likes = course.likes.length;
   const comments = course.comments.length;
   const averageRating = average(course.reviews.map((review) => review.rating));

@@ -39,25 +39,33 @@ export function NotificationFeed({
   const dark = theme === "dark";
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [markAllPending, setMarkAllPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const unreadCount = items.filter((item) => !item.readAt).length;
   const resolvedEmptyTitle = emptyTitle ?? messages.notifications.emptyTitle;
   const resolvedEmptyDescription = emptyDescription ?? messages.notifications.emptyDescription;
 
   async function updateReadState(id: string, read: boolean) {
     setPendingId(id);
+    setError(null);
 
-    const response = await fetch(`/api/notifications/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ read }),
-    });
-
-    if (response.ok) {
-      startTransition(() => {
-        router.refresh();
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ read }),
       });
+
+      if (response.ok) {
+        startTransition(() => {
+          router.refresh();
+        });
+      } else {
+        setError("Nao foi possivel atualizar a notificacao.");
+      }
+    } catch {
+      setError("Nao foi possivel atualizar a notificacao.");
     }
 
     setPendingId(null);
@@ -65,15 +73,22 @@ export function NotificationFeed({
 
   async function markAllRead() {
     setMarkAllPending(true);
+    setError(null);
 
-    const response = await fetch("/api/notifications/mark-all-read", {
-      method: "POST",
-    });
-
-    if (response.ok) {
-      startTransition(() => {
-        router.refresh();
+    try {
+      const response = await fetch("/api/notifications/mark-all-read", {
+        method: "POST",
       });
+
+      if (response.ok) {
+        startTransition(() => {
+          router.refresh();
+        });
+      } else {
+        setError("Nao foi possivel marcar todas como lidas.");
+      }
+    } catch {
+      setError("Nao foi possivel marcar todas como lidas.");
     }
 
     setMarkAllPending(false);
@@ -97,6 +112,7 @@ export function NotificationFeed({
 
   return (
     <div className="space-y-4">
+      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       {showMarkAll && unreadCount > 0 ? (
         <div className="flex justify-end">
           <Button

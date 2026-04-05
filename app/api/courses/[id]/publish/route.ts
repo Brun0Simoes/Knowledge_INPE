@@ -44,6 +44,8 @@ export async function POST(_: Request, { params }: RouteContext) {
 
   const wasPublished = course.status === CourseStatus.PUBLISHED;
 
+  // Publish is wrapped in a transaction so the public status and featured flag
+  // switch together before notifications and e-mail fan-out begin.
   const publishedCourse = await prisma.$transaction(async (tx) => {
     const published = await tx.course.update({
       where: { id: course.id },
@@ -78,6 +80,8 @@ export async function POST(_: Request, { params }: RouteContext) {
       },
     });
 
+    // Internal notifications are created for all users, while the e-mail queue
+    // only includes recipients that explicitly opted in.
     await createCoursePublicationNotification({
       course: publishedCourse,
       createdById: user.id,

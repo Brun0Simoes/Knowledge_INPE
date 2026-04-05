@@ -10,6 +10,8 @@ function toBoolean(value: FormDataEntryValue | null) {
 }
 
 export async function ensureUniqueCourseSlug(title: string, excludeId?: string) {
+  // Slugs are generated from the human title so the editorial URL stays readable.
+  // We probe the database until we find a unique suffix for create/edit flows.
   const baseSlug = createCourseSlug(title) || "curso";
   let slug = baseSlug;
   let suffix = 1;
@@ -36,6 +38,8 @@ export async function parseCourseFormData(
   formData: FormData,
   mode: "create" | "update",
 ) {
+  // Files are validated separately from the Zod payload because FormData mixes
+  // strings and blobs and the image rules depend on the upload layer.
   const imageFiles = formData
     .getAll("imageFiles")
     .filter((value): value is File => value instanceof File && value.size > 0);
@@ -93,6 +97,8 @@ export async function buildCourseImages(
   imageUrls: string[],
   startOrder = 0,
 ) {
+  // Uploaded files and external URLs end up in the same ordered gallery model so
+  // the page renderer does not need to care about the original source.
   const uploaded = await saveUploadedFiles(imageFiles, title);
 
   return [
@@ -115,6 +121,7 @@ export async function clearPublishedFeaturedCourses(
   excludeId: string,
   client: Pick<typeof prisma, "course"> = prisma,
 ) {
+  // Only one published course should occupy the hero slot at a time.
   await client.course.updateMany({
     where: {
       id: {

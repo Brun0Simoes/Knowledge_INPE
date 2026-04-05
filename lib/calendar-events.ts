@@ -67,6 +67,8 @@ function buildExternalEventSearchText(event: Awaited<ReturnType<typeof getPublic
 }
 
 async function getPlatformCalendarEvents(): Promise<CalendarEvent[]> {
+  // Published courses are projected into calendar events so the same panel can
+  // blend external training dates with internal course releases.
   const courses = await prisma.course.findMany({
     where: {
       status: CourseStatus.PUBLISHED,
@@ -151,6 +153,8 @@ function getCalendarCache() {
 }
 
 async function loadCalendarEventsFresh() {
+  // External feed failures should not hide platform releases, so the external
+  // branch degrades to an empty list instead of failing the whole payload.
   const [platformEvents, externalEvents] = await Promise.all([
     getPlatformCalendarEvents(),
     getExternalCalendarEvents().catch(() => []),
@@ -183,6 +187,8 @@ export async function getCalendarEvents() {
   const cache = getCalendarCache();
   const now = Date.now();
 
+  // Serve the cached payload immediately and refresh in the background when the
+  // TTL expires. This keeps dashboard navigation fast.
   if (cache.events?.length) {
     if (now - cache.updatedAt > CALENDAR_CACHE_TTL_MS) {
       void refreshCalendarCache();
@@ -206,6 +212,8 @@ export function invalidateCalendarEventsCache() {
 }
 
 export function buildCalendarExportIcs(events: CalendarEvent[], origin: string) {
+  // ICS export is built manually so admin filters map 1:1 to the rendered
+  // calendar without introducing another serialization dependency.
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

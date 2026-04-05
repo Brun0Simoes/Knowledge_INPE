@@ -32,6 +32,7 @@
 .playwright-cli/
 output/
 public/uploads/
+screenshots/
 
 # debug
 npm-debug.log*

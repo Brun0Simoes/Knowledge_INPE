@@ -8,7 +8,8 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const parsed = registerSchema.safeParse({
     ...body,
-    notificationOptIn: Boolean(body?.notificationOptIn),
+    notificationOptIn:
+      typeof body?.notificationOptIn === "boolean" ? body.notificationOptIn : undefined,
   });
 
   if (!parsed.success) {

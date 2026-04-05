@@ -11,6 +11,7 @@ import { loginSchema } from "@/lib/schemas/auth";
 const googleEnabled = Boolean(
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
 );
+const SESSION_PROFILE_SYNC_WINDOW_MS = 5 * 60 * 1000;
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -69,12 +70,21 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // On sign-in we hydrate the JWT with the fields used throughout the UI.
       if (user) {
         token.role = user.role;
         token.notificationOptIn = user.notificationOptIn;
+        token.profileSyncedAt = Date.now();
       }
 
-      if (token.sub) {
+      // Session reads happen on nearly every protected request. Refreshing the token
+      // from Prisma on a short window keeps role/notification state fresh without
+      // forcing a database roundtrip on every single render.
+      if (
+        token.sub &&
+        (!token.profileSyncedAt ||
+          Date.now() - token.profileSyncedAt > SESSION_PROFILE_SYNC_WINDOW_MS)
+      ) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: {
@@ -90,12 +100,15 @@ export const authOptions: NextAuthOptions = {
           token.picture = dbUser.image;
           token.role = dbUser.role;
           token.notificationOptIn = dbUser.notificationOptIn;
+          token.profileSyncedAt = Date.now();
         }
       }
 
       return token;
     },
     async session({ session, token }) {
+      // The session object is the server/client contract consumed by layouts, route
+      // guards and interactive widgets.
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.role = token.role ?? "USER";

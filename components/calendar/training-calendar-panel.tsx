@@ -218,6 +218,8 @@ export function TrainingCalendarPanel({
     let disposed = false;
 
     async function refreshCalendar() {
+      // The dashboard renders immediately and the calendar hydrates in parallel so
+      // the external feed never blocks the rest of the page.
       if (!hasLoadedRef.current) {
         setLoading(true);
       }
@@ -258,6 +260,7 @@ export function TrainingCalendarPanel({
       void refreshCalendar();
     }, CALENDAR_REFRESH_INTERVAL_MS);
 
+    // Refresh on focus/visibility to keep the agenda current after long idle tabs.
     const handleFocus = () => {
       void refreshCalendar();
     };
@@ -303,6 +306,8 @@ export function TrainingCalendarPanel({
   }, [filteredEvents]);
 
   useEffect(() => {
+    // Keep the selected day stable when filters change, but fall back to the next
+    // meaningful event if the previous day disappears from the current slice.
     setSelectedDay((previousSelectedDay) => {
       if (previousSelectedDay && eventsByDay.has(previousSelectedDay)) {
         return previousSelectedDay;

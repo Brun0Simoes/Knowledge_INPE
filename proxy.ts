@@ -7,6 +7,9 @@ import { PUBLIC_AUTH_ROUTES } from "@/lib/constants";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.some((route) => pathname === route);
+
+  // Proxy is used only as a fast optimistic gate. The real authorization still
+  // happens inside server components and route handlers.
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET ?? "dev-secret-change-me",

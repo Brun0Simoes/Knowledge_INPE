@@ -38,18 +38,22 @@ export function LoginForm({ callbackUrl, googleEnabled }: LoginFormProps) {
     setError(null);
 
     startTransition(async () => {
-      const result = await signIn("credentials", {
-        ...values,
-        callbackUrl: safeCallbackUrl,
-        redirect: false,
-      });
+      try {
+        const result = await signIn("credentials", {
+          ...values,
+          callbackUrl: safeCallbackUrl,
+          redirect: false,
+        });
 
-      if (result?.error) {
+        if (result?.error) {
+          setError(messages.auth.invalidCredentials);
+          return;
+        }
+
+        window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
+      } catch {
         setError(messages.auth.invalidCredentials);
-        return;
       }
-
-      window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
     });
   });
 

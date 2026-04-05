@@ -113,6 +113,8 @@ function parseEventBlock(block: string): ExternalTrainingEvent | null {
 }
 
 export const getPublicTrainingEvents = cache(async () => {
+  // The public EUMETSAT endpoint returns XML, so we normalize it once on the
+  // server and cache the parsed result for repeated dashboard requests.
   const response = await fetch(EVENTS_ENDPOINT, {
     headers: {
       Accept: "application/xml,text/xml;q=0.9,*/*;q=0.8",

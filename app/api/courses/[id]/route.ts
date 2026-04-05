@@ -70,6 +70,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     course.images.length,
   );
 
+  // Update and featured-slot maintenance run in one transaction so the hero
+  // selection never lands in an inconsistent state.
   const updatedCourse = await prisma.$transaction(async (tx) => {
     const updated = await tx.course.update({
       where: { id: course.id },
@@ -136,6 +138,8 @@ export async function DELETE(_: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Curso nao encontrado." }, { status: 404 });
   }
 
+  // Notifications linked to the course are removed first so the inbox never keeps
+  // dangling links after an admin deletes a publication.
   await prisma.$transaction(async (tx) => {
     await tx.notification.deleteMany({
       where: {

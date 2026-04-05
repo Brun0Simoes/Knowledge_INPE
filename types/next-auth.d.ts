@@ -19,5 +19,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     role?: "USER" | "ADMIN";
     notificationOptIn?: boolean;
+    profileSyncedAt?: number;
   }
 }

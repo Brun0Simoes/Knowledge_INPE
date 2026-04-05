@@ -41,25 +41,31 @@ export function CourseEngagementPanel({
     setPendingLike(true);
     setFeedback(null);
 
-    const response = await fetch(`/api/courses/${courseId}/like`, {
-      method: "POST",
-    });
+    try {
+      const response = await fetch(`/api/courses/${courseId}/like`, {
+        method: "POST",
+      });
 
-    const payload = (await response.json().catch(() => null)) as
-      | { liked?: boolean; totalLikes?: number; error?: string }
-      | null;
+      const payload = (await response.json().catch(() => null)) as
+        | { liked?: boolean; totalLikes?: number; error?: string }
+        | null;
 
-    if (!response.ok) {
-      setFeedback(payload?.error ?? messages.course.likeError);
+      if (!response.ok) {
+        setFeedback(payload?.error ?? messages.course.likeError);
+        setPendingLike(false);
+        return;
+      }
+
+      setLiked(Boolean(payload?.liked));
+      setLikes(payload?.totalLikes ?? likes);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      setFeedback(messages.course.likeError);
       setPendingLike(false);
       return;
     }
-
-    setLiked(Boolean(payload?.liked));
-    setLikes(payload?.totalLikes ?? likes);
-    startTransition(() => {
-      router.refresh();
-    });
     setPendingLike(false);
   }
 
@@ -67,28 +73,34 @@ export function CourseEngagementPanel({
     setPendingReview(true);
     setFeedback(null);
 
-    const response = await fetch(`/api/courses/${courseId}/reviews`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        rating,
-        body: reviewBody,
-      }),
-    });
+    try {
+      const response = await fetch(`/api/courses/${courseId}/reviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rating,
+          body: reviewBody,
+        }),
+      });
 
-    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-    if (!response.ok) {
-      setFeedback(payload?.error ?? messages.course.reviewError);
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        setFeedback(payload?.error ?? messages.course.reviewError);
+        setPendingReview(false);
+        return;
+      }
+
+      setFeedback(messages.course.reviewSaved);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      setFeedback(messages.course.reviewError);
       setPendingReview(false);
       return;
     }
-
-    setFeedback(messages.course.reviewSaved);
-    startTransition(() => {
-      router.refresh();
-    });
     setPendingReview(false);
   }
 
@@ -96,28 +108,34 @@ export function CourseEngagementPanel({
     setPendingComment(true);
     setFeedback(null);
 
-    const response = await fetch(`/api/courses/${courseId}/comments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        body: commentBody,
-      }),
-    });
+    try {
+      const response = await fetch(`/api/courses/${courseId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          body: commentBody,
+        }),
+      });
 
-    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-    if (!response.ok) {
-      setFeedback(payload?.error ?? messages.course.commentError);
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        setFeedback(payload?.error ?? messages.course.commentError);
+        setPendingComment(false);
+        return;
+      }
+
+      setCommentBody("");
+      setFeedback(messages.course.commentPublished);
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch {
+      setFeedback(messages.course.commentError);
       setPendingComment(false);
       return;
     }
-
-    setCommentBody("");
-    setFeedback(messages.course.commentPublished);
-    startTransition(() => {
-      router.refresh();
-    });
     setPendingComment(false);
   }
 

@@ -42,6 +42,8 @@ export function hasMeaningfulCourseDraft(
 }
 
 function openDraftFilesDb(): Promise<IDBDatabase | null> {
+  // Text lives in localStorage while File objects are persisted in IndexedDB.
+  // This mirrors the "local draft" technique used by email clients.
   if (!canUseIndexedDb()) {
     return Promise.resolve(null);
   }
@@ -154,6 +156,7 @@ export async function saveCourseDraftToStorage(
   draft: PersistedCourseFormState,
   files: File[],
 ) {
+  // Saving both layers together keeps reload/accidental navigation recovery in sync.
   if (!canUseBrowserStorage()) {
     return;
   }

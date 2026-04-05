@@ -22,6 +22,8 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
+  // Prefer forwarded headers so exported links stay correct behind Tailscale,
+  // reverse proxies or a future production load balancer.
   const forwardedHost = request.headers.get("x-forwarded-host");
   const forwardedProto = request.headers.get("x-forwarded-proto");
   const requestHost = request.headers.get("host");

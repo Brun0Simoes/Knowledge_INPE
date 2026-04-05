@@ -25,6 +25,8 @@ export async function POST(request: Request) {
   }
 
   const slug = await ensureUniqueCourseSlug(parsed.data.title);
+  // Course creation stays editorial-first: build the slug, normalize the gallery
+  // and persist the publication as a draft until an admin explicitly publishes it.
   const images = await buildCourseImages(
     parsed.data.title,
     parsed.data.imageFiles,
