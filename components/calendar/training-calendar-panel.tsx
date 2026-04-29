@@ -7,8 +7,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  CALENDAR_TIME_ZONE,
   filterCalendarEvents,
+  getCalendarDayKey,
+  getCalendarEventEndDayKey,
+  getCalendarEventStartDayKey,
   getCalendarMonthKey,
+  isCalendarEventActiveOnDay,
   type CalendarEvent,
   type CalendarFormatFilter,
   type CalendarSourceFilter,
@@ -143,10 +148,6 @@ const calendarLabels = {
   },
 } as const;
 
-function toDayKey(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
-
 function getVisibleDays(month: Date) {
   const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
   const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
@@ -169,14 +170,24 @@ function getDefaultSelectedDay(
 ) {
   const monthKey = getCalendarMonthKey(month);
   const monthEvents = filterCalendarEvents(events, { sourceFilter, formatFilter, monthKey });
-  const todayKey = toDayKey(new Date());
+  const todayKey = getCalendarDayKey(new Date());
   const isCurrentMonth = monthKey === getCalendarMonthKey(new Date());
+  const monthStartDayKey = `${monthKey}-01`;
   const selected =
     (isCurrentMonth
-      ? monthEvents.find((event) => toDayKey(new Date(event.startDate)) >= todayKey)
+      ? monthEvents.find((event) => getCalendarEventEndDayKey(event) >= todayKey)
       : null) ?? monthEvents[0];
+  const selectedStartDayKey = selected ? getCalendarEventStartDayKey(selected) : null;
 
-  return toDayKey(selected ? new Date(selected.startDate) : startOfMonth(month));
+  if (selected && isCurrentMonth && isCalendarEventActiveOnDay(selected, todayKey)) {
+    return todayKey;
+  }
+
+  if (selectedStartDayKey) {
+    return selectedStartDayKey < monthStartDayKey ? monthStartDayKey : selectedStartDayKey;
+  }
+
+  return getCalendarDayKey(startOfMonth(month));
 }
 
 export function TrainingCalendarPanel({
@@ -200,15 +211,15 @@ export function TrainingCalendarPanel({
 
   const formatters = useMemo(
     () => ({
-      month: new Intl.DateTimeFormat(language, { month: "long", year: "numeric", timeZone: "UTC" }),
-      weekday: new Intl.DateTimeFormat(language, { weekday: "short", timeZone: "UTC" }),
-      selectedDay: new Intl.DateTimeFormat(language, { dateStyle: "full", timeZone: "UTC" }),
+      month: new Intl.DateTimeFormat(language, { month: "long", year: "numeric", timeZone: CALENDAR_TIME_ZONE }),
+      weekday: new Intl.DateTimeFormat(language, { weekday: "short", timeZone: CALENDAR_TIME_ZONE }),
+      selectedDay: new Intl.DateTimeFormat(language, { dateStyle: "full", timeZone: CALENDAR_TIME_ZONE }),
       eventDate: new Intl.DateTimeFormat(language, {
         day: "2-digit",
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
-        timeZone: "UTC",
+        timeZone: CALENDAR_TIME_ZONE,
       }),
     }),
     [language],
@@ -292,18 +303,22 @@ export function TrainingCalendarPanel({
     return filterCalendarEvents(events, { sourceFilter, formatFilter, monthKey: currentMonthKey });
   }, [currentMonthKey, events, sourceFilter, formatFilter]);
 
+  const visibleDays = useMemo(() => getVisibleDays(currentMonth), [currentMonth]);
+
   const eventsByDay = useMemo(() => {
     const grouped = new Map<string, CalendarEvent[]>();
 
-    for (const event of filteredEvents) {
-      const dayKey = toDayKey(new Date(event.startDate));
-      const current = grouped.get(dayKey) ?? [];
-      current.push(event);
-      grouped.set(dayKey, current);
+    for (const day of visibleDays) {
+      const dayKey = getCalendarDayKey(day);
+      const dayEvents = filteredEvents.filter((event) => isCalendarEventActiveOnDay(event, dayKey));
+
+      if (dayEvents.length) {
+        grouped.set(dayKey, dayEvents);
+      }
     }
 
     return grouped;
-  }, [filteredEvents]);
+  }, [filteredEvents, visibleDays]);
 
   useEffect(() => {
     // Keep the selected day stable when filters change, but fall back to the next
@@ -317,7 +332,6 @@ export function TrainingCalendarPanel({
     });
   }, [currentMonth, events, eventsByDay, formatFilter, sourceFilter]);
 
-  const visibleDays = useMemo(() => getVisibleDays(currentMonth), [currentMonth]);
   const selectedEvents = eventsByDay.get(selectedDay) ?? [];
   const selectedDate = new Date(`${selectedDay}T12:00:00Z`);
   const exportHref = `/api/calendar/export?month=${currentMonthKey}&source=${sourceFilter}&format=${formatFilter}`;
@@ -475,7 +489,7 @@ export function TrainingCalendarPanel({
 
               <div className="mt-3 grid grid-cols-7 gap-2">
                 {visibleDays.map((day) => {
-                  const dayKey = toDayKey(day);
+                  const dayKey = getCalendarDayKey(day);
                   const dayEvents = eventsByDay.get(dayKey) ?? [];
                   const selected = selectedDay === dayKey;
                   const todayMatch = isSameDay(day, today);

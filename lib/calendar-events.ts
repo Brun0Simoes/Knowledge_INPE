@@ -61,7 +61,7 @@ function foldIcsLine(line: string) {
 }
 
 function buildExternalEventSearchText(event: Awaited<ReturnType<typeof getPublicTrainingEvents>>[number]) {
-  return [event.title, event.host, event.city, event.contactUrl, event.registrationUrl, event.eventType]
+  return [event.title, event.host, event.city, event.contactUrl, event.registrationUrl, event.eventType, event.description]
     .filter(Boolean)
     .join(" ");
 }
@@ -132,7 +132,7 @@ async function getExternalCalendarEvents(): Promise<CalendarEvent[]> {
       city: event.city,
       host: event.host,
       url: event.registrationUrl ?? event.contactUrl,
-      description: null,
+      description: event.description,
       languages: event.languages,
       sourceName: "EUMETSAT",
       sourceFilters,

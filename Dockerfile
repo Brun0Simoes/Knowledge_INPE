@@ -4,6 +4,7 @@ FROM node:24-bookworm-slim AS base
 
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV TZ=America/Sao_Paulo
 
 FROM base AS deps
 
