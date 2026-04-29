@@ -14,12 +14,39 @@ npm.cmd run dev
 - `npm run dev`: sobe a aplicacao em desenvolvimento
 - `npm run build`: gera o build de producao
 - `npm run start`: executa o build de producao
+- `npm run docker:build`: cria a imagem Docker de producao
+- `npm run docker:up`: sobe web, APIs e worker com Docker Compose
+- `npm run docker:down`: derruba os containers do Compose
 - `npm run lint`: valida o codigo
 - `npm run seed`: popula o banco local
 - `npm run studio`: abre o Prisma Studio
 - `npm run prisma:migrate`: inicializa/atualiza o schema SQLite
 - `npm run prisma:generate`: regenera o client Prisma
 - `npm run emails:process`: drena manualmente a fila de e-mail
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+O servico `web` usa o build standalone do Next.js e carrega paginas, route handlers/API e o worker de fila de e-mail no mesmo container. O schema SQLite e inicializado automaticamente durante o boot do servidor.
+
+Use `docker.env.example` como referencia para configurar variaveis no `.env` lido pelo Compose. O banco do container usa `DOCKER_DATABASE_URL` para nao conflitar com o `DATABASE_URL` local.
+
+Volumes persistentes:
+
+- `sqlite-data`: banco em `/app/data/knowledge.db`
+- `uploads`: arquivos enviados em `/app/public/uploads`
+
+Comandos uteis:
+
+```bash
+docker compose run --rm --build tools npm run seed
+docker compose run --rm --build tools npm run emails:process
+docker compose logs -f web
+docker compose down
+```
 
 ## Credenciais seeded
 

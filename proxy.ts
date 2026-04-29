@@ -7,6 +7,7 @@ import { PUBLIC_AUTH_ROUTES } from "@/lib/constants";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicAuthRoute = PUBLIC_AUTH_ROUTES.some((route) => pathname === route);
+  const isInternalEmailProcessorRoute = pathname === "/api/internal/email/process";
 
   // Proxy is used only as a fast optimistic gate. The real authorization still
   // happens inside server components and route handlers.
@@ -15,7 +16,7 @@ export async function proxy(request: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET ?? "dev-secret-change-me",
   });
 
-  if (!token && !isPublicAuthRoute) {
+  if (!token && !isPublicAuthRoute && !isInternalEmailProcessorRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);

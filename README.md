@@ -31,11 +31,37 @@ npm.cmd run seed
 npm.cmd run dev
 ```
 
+## Como rodar com Docker
+
+```bash
+docker compose up --build
+```
+
+A aplicacao sobe em `http://localhost:3000`. O Compose inclui a web, os route handlers/API do Next.js e o worker de fila de e-mail iniciado pelo servidor. O banco SQLite fica no volume `sqlite-data` em `/app/data/knowledge.db`, e uploads locais ficam no volume `uploads`.
+
+Opcionalmente, use `docker.env.example` como referencia para as variaveis lidas pelo Compose.
+
+Para trocar a porta local:
+
+```bash
+$env:APP_PORT="8080"
+docker compose up --build
+```
+
+Para popular o banco do container com os dados de exemplo:
+
+```bash
+docker compose run --rm --build tools npm run seed
+```
+
 ## Scripts
 
 - `npm run dev`: ambiente de desenvolvimento
 - `npm run build`: build de producao
 - `npm run start`: sobe o build
+- `npm run docker:build`: cria a imagem Docker de producao
+- `npm run docker:up`: sobe a aplicacao com Docker Compose
+- `npm run docker:down`: derruba a aplicacao do Docker Compose
 - `npm run lint`: lint do projeto
 - `npm run seed`: popula o SQLite com dados ficticios
 - `npm run studio`: abre o Prisma Studio

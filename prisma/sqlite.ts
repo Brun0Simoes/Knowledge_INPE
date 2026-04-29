@@ -9,8 +9,13 @@ function resolveDatabasePath() {
     throw new Error("Este bootstrap local suporta apenas SQLite com DATABASE_URL iniciando em file:.");
   }
 
-  const relativePath = connectionUrl.replace(/^file:/, "").replace(/^\.\//, "");
-  return path.resolve(process.cwd(), relativePath);
+  const databasePath = connectionUrl.replace(/^file:/, "").replace(/^\.\//, "");
+
+  if (path.isAbsolute(databasePath)) {
+    return databasePath;
+  }
+
+  return path.resolve(/* turbopackIgnore: true */ process.cwd(), databasePath);
 }
 
 export function ensureDatabaseSchema() {

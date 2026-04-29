@@ -1,0 +1,72 @@
+x-app-environment: &app-environment
+  NODE_ENV: "production"
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  DATABASE_URL: "${DOCKER_DATABASE_URL:-file:./data/knowledge.db}"
+  NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
+  NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:-dev-secret-change-me}"
+  GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+  GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+  SMTP_URL: "${SMTP_URL:-}"
+  SMTP_HOST: "${SMTP_HOST:-smtp-relay.brevo.com}"
+  SMTP_PORT: "${SMTP_PORT:-587}"
+  SMTP_USER: "${SMTP_USER:-}"
+  SMTP_PASS: "${SMTP_PASS:-}"
+  SMTP_FROM: "${SMTP_FROM:-knowledge <no-reply@example.com>}"
+  SMTP_REPLY_TO: "${SMTP_REPLY_TO:-}"
+  SMTP_SECURE: "${SMTP_SECURE:-false}"
+  SMTP_REQUIRE_TLS: "${SMTP_REQUIRE_TLS:-true}"
+  SMTP_IGNORE_TLS: "${SMTP_IGNORE_TLS:-false}"
+  EMAIL_PROCESSOR_SECRET: "${EMAIL_PROCESSOR_SECRET:-}"
+  EMAIL_MAX_ATTEMPTS: "${EMAIL_MAX_ATTEMPTS:-3}"
+  EMAIL_BATCH_SIZE: "${EMAIL_BATCH_SIZE:-100}"
+  EMAIL_RECIPIENT_INSERT_CHUNK_SIZE: "${EMAIL_RECIPIENT_INSERT_CHUNK_SIZE:-200}"
+  EMAIL_MAX_RECIPIENTS_PER_RUN: "${EMAIL_MAX_RECIPIENTS_PER_RUN:-250}"
+  EMAIL_SEND_CONCURRENCY: "${EMAIL_SEND_CONCURRENCY:-5}"
+  EMAIL_BATCH_STALE_MINUTES: "${EMAIL_BATCH_STALE_MINUTES:-15}"
+  EMAIL_DAILY_SEND_LIMIT: "${EMAIL_DAILY_SEND_LIMIT:-}"
+  EMAIL_DAILY_WINDOW_HOURS: "${EMAIL_DAILY_WINDOW_HOURS:-24}"
+  EMAIL_QUEUE_AUTOSTART: "${EMAIL_QUEUE_AUTOSTART:-true}"
+  EMAIL_QUEUE_POLL_INTERVAL_SECONDS: "${EMAIL_QUEUE_POLL_INTERVAL_SECONDS:-30}"
+  SMTP_POOL_MAX_CONNECTIONS: "${SMTP_POOL_MAX_CONNECTIONS:-5}"
+  SMTP_POOL_MAX_MESSAGES: "${SMTP_POOL_MAX_MESSAGES:-100}"
+
+x-app-volumes: &app-volumes
+  - sqlite-data:/app/data
+  - uploads:/app/public/uploads
+
+services:
+  web:
+    build:
+      context: .
+    image: site-inpe:latest
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      <<: *app-environment
+    volumes: *app-volumes
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "fetch('http://127.0.0.1:3000/login').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  tools:
+    profiles:
+      - tools
+    build:
+      context: .
+      target: tools
+    image: site-inpe-tools:latest
+    environment:
+      <<: *app-environment
+    volumes: *app-volumes
+    command: ["npm", "run", "prisma:migrate"]
+
+volumes:
+  sqlite-data:
+  uploads:
