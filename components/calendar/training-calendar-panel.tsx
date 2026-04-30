@@ -63,6 +63,10 @@ const calendarLabels = {
     hostedBy: "Host",
     selectedDay: "Dia selecionado",
     liveFeed: "Agenda integrada",
+    previousMonth: "Mes anterior",
+    nextMonth: "Proximo mes",
+    calendarDayLabel: (day: string, count: number) =>
+      `${day}. ${count} ${count === 1 ? "evento" : "eventos"}.`,
     mappedCount: (count: number) =>
       `${count} ${count === 1 ? "evento mapeado" : "eventos mapeados"} neste dia.`,
     monthlyCount: (count: number) =>
@@ -100,6 +104,10 @@ const calendarLabels = {
     hostedBy: "Host",
     selectedDay: "Selected day",
     liveFeed: "Combined feed",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    calendarDayLabel: (day: string, count: number) =>
+      `${day}. ${count} ${count === 1 ? "event" : "events"}.`,
     mappedCount: (count: number) =>
       `${count} ${count === 1 ? "event mapped" : "events mapped"} on this day.`,
     monthlyCount: (count: number) =>
@@ -136,6 +144,10 @@ const calendarLabels = {
     hostedBy: "Host",
     selectedDay: "Dia seleccionado",
     liveFeed: "Agenda integrada",
+    previousMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
+    calendarDayLabel: (day: string, count: number) =>
+      `${day}. ${count} ${count === 1 ? "evento" : "eventos"}.`,
     mappedCount: (count: number) =>
       `${count} ${count === 1 ? "evento mapeado" : "eventos mapeados"} en este dia.`,
     monthlyCount: (count: number) =>
@@ -395,6 +407,7 @@ export function TrainingCalendarPanel({
                       : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-white/12 dark:bg-[#102132] dark:text-zinc-200",
                   )}
                   type="button"
+                  aria-pressed={sourceFilter === filter}
                   onClick={() => changeSourceFilter(filter)}
                 >
                   {labels.sourceFilters[filter]}
@@ -418,6 +431,7 @@ export function TrainingCalendarPanel({
                       : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-white/12 dark:bg-[#102132] dark:text-zinc-200",
                   )}
                   type="button"
+                  aria-pressed={formatFilter === filter}
                   onClick={() => changeFormatFilter(filter)}
                 >
                   {labels.formatFilters[filter]}
@@ -463,7 +477,13 @@ export function TrainingCalendarPanel({
           ) : (
             <>
               <div className="flex items-center justify-between gap-3">
-                <Button type="button" variant="ghost" size="icon" onClick={() => moveMonth("prev")}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={labels.previousMonth}
+                  onClick={() => moveMonth("prev")}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="text-center">
@@ -474,7 +494,13 @@ export function TrainingCalendarPanel({
                     {formatters.month.format(currentMonth)}
                   </p>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => moveMonth("next")}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={labels.nextMonth}
+                  onClick={() => moveMonth("next")}
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -493,6 +519,10 @@ export function TrainingCalendarPanel({
                   const dayEvents = eventsByDay.get(dayKey) ?? [];
                   const selected = selectedDay === dayKey;
                   const todayMatch = isSameDay(day, today);
+                  const dayLabel = labels.calendarDayLabel(
+                    formatters.selectedDay.format(day),
+                    dayEvents.length,
+                  );
 
                   return (
                     <button
@@ -507,6 +537,9 @@ export function TrainingCalendarPanel({
                           "border-teal-500 bg-teal-50 shadow-[0_12px_30px_-22px_rgba(13,148,136,0.9)] dark:bg-teal-950/35",
                       )}
                       type="button"
+                      aria-current={todayMatch ? "date" : undefined}
+                      aria-label={dayLabel}
+                      aria-pressed={selected}
                       onClick={() => setSelectedDay(dayKey)}
                     >
                       <div className="flex items-center justify-between">
@@ -528,6 +561,7 @@ export function TrainingCalendarPanel({
                         {dayEvents.slice(0, 3).map((event) => (
                           <span
                             key={event.id}
+                            aria-hidden="true"
                             className={cn(
                               "h-2 w-2 rounded-full",
                               event.sourceFilters.includes("PLATFORM")
