@@ -44,6 +44,28 @@ export const registerSchema = z
     message: "As senhas nao coincidem",
   });
 
+export const passwordResetRequestSchema = z.object({
+  email: loginEmailSchema,
+});
+
+export const passwordResetConfirmSchema = z
+  .object({
+    email: loginEmailSchema,
+    code: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, "Informe o codigo de 6 digitos"),
+    password: passwordSchema,
+    confirmPassword: z
+      .string()
+      .min(8, "Confirme a senha com no minimo 8 caracteres")
+      .max(64, "A confirmacao precisa ter no maximo 64 caracteres"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "As senhas nao coincidem",
+  });
+
 function isPublicRegistrationEmail(email: string) {
   const domain = email.split("@")[1]?.toLowerCase();
 

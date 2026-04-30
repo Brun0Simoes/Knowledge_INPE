@@ -76,6 +76,24 @@ export function ensureDatabaseSchema() {
     CREATE UNIQUE INDEX IF NOT EXISTS "VerificationToken_identifier_token_key"
     ON "VerificationToken"("identifier", "token");
 
+    CREATE TABLE IF NOT EXISTS "PasswordResetCode" (
+      "id" TEXT NOT NULL PRIMARY KEY,
+      "userId" TEXT NOT NULL,
+      "email" TEXT NOT NULL,
+      "codeHash" TEXT NOT NULL,
+      "expiresAt" DATETIME NOT NULL,
+      "consumedAt" DATETIME,
+      "attemptCount" INTEGER NOT NULL DEFAULT 0,
+      "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS "PasswordResetCode_email_createdAt_idx"
+    ON "PasswordResetCode"("email", "createdAt");
+    CREATE INDEX IF NOT EXISTS "PasswordResetCode_userId_consumedAt_expiresAt_idx"
+    ON "PasswordResetCode"("userId", "consumedAt", "expiresAt");
+
     CREATE TABLE IF NOT EXISTS "Course" (
       "id" TEXT NOT NULL PRIMARY KEY,
       "slug" TEXT NOT NULL UNIQUE,
@@ -253,6 +271,9 @@ export function ensureDatabaseSchema() {
   ensureColumn(db, "EmailBatch", "updatedAt", "DATETIME");
   ensureColumn(db, "EmailBatchRecipient", "attemptCount", "INTEGER NOT NULL DEFAULT 0");
   ensureColumn(db, "EmailBatchRecipient", "lastAttemptAt", "DATETIME");
+  ensureColumn(db, "PasswordResetCode", "attemptCount", "INTEGER NOT NULL DEFAULT 0");
+  ensureColumn(db, "PasswordResetCode", "consumedAt", "DATETIME");
+  ensureColumn(db, "PasswordResetCode", "updatedAt", "DATETIME");
   ensureColumn(db, "Notification", "type", "TEXT NOT NULL DEFAULT 'COURSE_PUBLISHED'");
   ensureColumn(db, "Notification", "title", "TEXT");
   ensureColumn(db, "Notification", "body", "TEXT");
@@ -269,6 +290,12 @@ export function ensureDatabaseSchema() {
 
     CREATE INDEX IF NOT EXISTS "EmailBatchRecipient_batchId_attemptCount_idx"
     ON "EmailBatchRecipient"("batchId", "attemptCount");
+
+    CREATE INDEX IF NOT EXISTS "PasswordResetCode_email_createdAt_idx"
+    ON "PasswordResetCode"("email", "createdAt");
+
+    CREATE INDEX IF NOT EXISTS "PasswordResetCode_userId_consumedAt_expiresAt_idx"
+    ON "PasswordResetCode"("userId", "consumedAt", "expiresAt");
 
     CREATE INDEX IF NOT EXISTS "Notification_createdAt_idx"
     ON "Notification"("createdAt");

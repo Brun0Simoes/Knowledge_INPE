@@ -20,6 +20,12 @@ type ProcessEmailQueueOptions = {
   maxRecipients?: number;
 };
 
+type PasswordResetEmailPayload = {
+  to: string;
+  code: string;
+  expiresAt: Date;
+};
+
 type MailRuntimeConfig = {
   from: string;
   replyTo?: string;
@@ -40,6 +46,7 @@ type MailTransportBundle = MailRuntimeConfig & {
 const BLOCKED_REASON = "SMTP nao configurado neste ambiente.";
 const DAILY_LIMIT_REASON = "Limite diario de envio atingido; aguardando nova janela.";
 const SQLITE_SAFE_RECIPIENT_INSERT_CHUNK_SIZE = 200;
+const KNOWLEDGE_LOGO_CID = "knowledge-logo@knowledge";
 
 const globalForMailer = globalThis as unknown as {
   mailerTransport?: MailTransportBundle | null;
@@ -174,6 +181,37 @@ export async function processEmailQueue({
   };
 }
 
+export async function sendPasswordResetEmail({
+  to,
+  code,
+  expiresAt,
+}: PasswordResetEmailPayload) {
+  const mailer = getMailerTransport();
+
+  if (!mailer) {
+    return { sent: false, reason: BLOCKED_REASON };
+  }
+
+  await mailer.transporter.sendMail({
+    from: mailer.from,
+    replyTo: mailer.replyTo,
+    to,
+    subject: `Codigo de recuperacao da ${APP_NAME}`,
+    text: buildPasswordResetEmailText({ code, expiresAt }),
+    html: buildPasswordResetEmailHtml({ code, expiresAt }),
+    attachments: [
+      {
+        filename: "knowledge-logo.svg",
+        content: buildKnowledgeLogoSvg(),
+        cid: KNOWLEDGE_LOGO_CID,
+        contentType: "image/svg+xml",
+      },
+    ],
+  });
+
+  return { sent: true, reason: null };
+}
+
 function dedupeRecipients(recipients: PublishPayload["recipients"]) {
   const byEmail = new Map<string, PublishPayload["recipients"][number]>();
 
@@ -300,7 +338,7 @@ function getMailerTransport() {
   return globalForMailer.mailerTransport;
 }
 
-function isMailerConfigured() {
+export function isMailerConfigured() {
   return getMailerTransport() !== null;
 }
 
@@ -747,6 +785,86 @@ function buildCoursePublicationEmailHtml({
       </p>
     </div>
   `;
+}
+
+function buildPasswordResetEmailHtml({
+  code,
+  expiresAt,
+}: {
+  code: string;
+  expiresAt: Date;
+}) {
+  const expiresLabel = escapeHtml(formatPasswordResetExpiry(expiresAt));
+  const escapedCode = escapeHtml(code);
+  const resetUrl = escapeHtml(new URL("/forgot-password", getAppBaseUrl()).toString());
+
+  return `
+    <div style="margin:0; padding:0; background:#f4f7fb;">
+      <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; padding: 28px 20px; color: #1f2937;">
+        <div style="background:#ffffff; border:1px solid #dbe4ee; border-radius:24px; padding:28px;">
+          <img src="cid:${KNOWLEDGE_LOGO_CID}" alt="${APP_NAME}" style="display:block; height:48px; width:auto; margin:0 0 24px;" />
+          <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.24em; color: #0f766e; margin:0 0 10px;">Recuperacao de senha</p>
+          <h1 style="font-size: 26px; line-height: 1.2; margin: 0 0 16px; color:#122033;">Seu codigo de seguranca</h1>
+          <p style="font-size: 16px; line-height: 1.7; margin: 0 0 20px; color:#475569;">
+            Use o codigo abaixo para alterar sua senha na ${APP_NAME}. Ele expira em ${expiresLabel}.
+          </p>
+          <div style="font-size: 34px; line-height: 1; letter-spacing: 0.28em; font-weight: 700; color:#122033; background:#eef6f5; border:1px solid #cce8e4; border-radius:18px; padding:18px 20px; text-align:center; margin: 0 0 22px;">
+            ${escapedCode}
+          </div>
+          <a href="${resetUrl}" style="display:inline-block; background:#0f766e; color:#ffffff; padding:12px 18px; border-radius:999px; text-decoration:none; font-weight:700;">Abrir recuperacao de senha</a>
+          <p style="font-size: 13px; line-height: 1.6; color: #64748b; margin: 24px 0 0;">
+            Se voce nao solicitou esta alteracao, ignore este email.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildPasswordResetEmailText({
+  code,
+  expiresAt,
+}: {
+  code: string;
+  expiresAt: Date;
+}) {
+  return [
+    `${APP_NAME} - Recuperacao de senha`,
+    "",
+    `Codigo: ${code}`,
+    `Expira em: ${formatPasswordResetExpiry(expiresAt)}`,
+    "",
+    "Se voce nao solicitou esta alteracao, ignore este email.",
+  ].join("\n");
+}
+
+function buildKnowledgeLogoSvg() {
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="320" height="96" viewBox="0 0 320 96" role="img" aria-label="${APP_NAME}">
+      <rect width="320" height="96" rx="28" fill="#122033"/>
+      <circle cx="55" cy="48" r="21" fill="none" stroke="#2dd4bf" stroke-width="5"/>
+      <path d="M38 49c21-17 44-18 68-3" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="79" cy="35" r="5" fill="#fbbf24"/>
+      <text x="116" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="1.5">knowledge</text>
+    </svg>
+  `;
+}
+
+function formatPasswordResetExpiry(expiresAt: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "America/Sao_Paulo",
+  }).format(expiresAt);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function getAppBaseUrl() {

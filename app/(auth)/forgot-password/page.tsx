@@ -1,0 +1,34 @@
+import Link from "next/link";
+
+import { PasswordResetForm } from "@/components/auth/password-reset-form";
+import { getServerLanguage } from "@/lib/server-preferences";
+import { getMessages } from "@/lib/ui-settings";
+
+export default async function ForgotPasswordPage() {
+  const language = await getServerLanguage();
+  const messages = getMessages(language);
+
+  return (
+    <div className="space-y-8">
+      <div className="space-y-3">
+        <p className="text-xs uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+          {messages.auth.resetEyebrow}
+        </p>
+        <h2 className="font-heading text-4xl text-zinc-950 dark:text-zinc-100">
+          {messages.auth.resetTitle}
+        </h2>
+        <p className="text-base leading-7 text-zinc-600 dark:text-zinc-300">
+          {messages.auth.resetDescription}
+        </p>
+      </div>
+
+      <PasswordResetForm />
+
+      <p className="text-sm text-zinc-600 dark:text-zinc-300">
+        <Link className="font-semibold text-teal-700 dark:text-teal-200" href="/login">
+          {messages.auth.signInLink}
+        </Link>
+      </p>
+    </div>
+  );
+}

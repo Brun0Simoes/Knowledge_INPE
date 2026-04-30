@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn, Orbit, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { startTransition, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -78,6 +79,15 @@ export function LoginForm({ callbackUrl, googleEnabled }: LoginFormProps) {
         {form.formState.errors.password ? (
           <p className="text-sm text-rose-600">{form.formState.errors.password.message}</p>
         ) : null}
+      </div>
+
+      <div className="flex justify-end">
+        <Link
+          className="text-sm font-semibold text-teal-700 hover:text-teal-600 dark:text-teal-200 dark:hover:text-teal-100"
+          href="/forgot-password"
+        >
+          {messages.auth.forgotPasswordLink}
+        </Link>
       </div>
 
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}

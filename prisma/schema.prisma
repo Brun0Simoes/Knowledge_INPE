@@ -74,6 +74,7 @@ model User {
   emailBatchReceipts EmailBatchRecipient[]
   notifications      UserNotification[]
   createdNotifications Notification[]      @relation("NotificationCreatedBy")
+  passwordResetCodes PasswordResetCode[]
 }
 
 model Account {
@@ -108,6 +109,22 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model PasswordResetCode {
+  id           String    @id @default(cuid())
+  userId       String
+  email        String
+  codeHash     String
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  attemptCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, createdAt])
+  @@index([userId, consumedAt, expiresAt])
 }
 
 model Course {
