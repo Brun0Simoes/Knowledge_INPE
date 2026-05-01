@@ -6,6 +6,8 @@ import {
 } from "@prisma/client";
 import nodemailer, { type Transporter } from "nodemailer";
 
+import { getConfiguredAppOrigin } from "@/lib/app-origin";
+import { isWeakSharedSecret } from "@/lib/auth-secret";
 import { APP_NAME } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
@@ -868,7 +870,7 @@ function escapeHtml(value: string) {
 }
 
 function getAppBaseUrl() {
-  return process.env.NEXTAUTH_URL?.trim() || "http://localhost:3000";
+  return getConfiguredAppOrigin();
 }
 
 function getPositiveInteger(name: string, fallback: number) {
@@ -927,7 +929,12 @@ function isDeliverableNotificationEmail(email: string) {
 }
 
 export function getEmailProcessorSecret() {
-  return process.env.EMAIL_PROCESSOR_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret-change-me";
+  const secret = process.env.EMAIL_PROCESSOR_SECRET || process.env.NEXTAUTH_SECRET;
+  if (isWeakSharedSecret(secret)) {
+    return null;
+  }
+
+  return secret;
 }
 
 export async function closeMailerTransport() {

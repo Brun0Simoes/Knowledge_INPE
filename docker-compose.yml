@@ -4,7 +4,7 @@ x-app-environment: &app-environment
   HOSTNAME: "0.0.0.0"
   DATABASE_URL: "${DOCKER_DATABASE_URL:-file:./data/knowledge.db}"
   NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
-  NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:-dev-secret-change-me}"
+  NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?Defina NEXTAUTH_SECRET com um segredo forte antes de iniciar o Docker}"
   GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
   GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
   SMTP_URL: "${SMTP_URL:-}"

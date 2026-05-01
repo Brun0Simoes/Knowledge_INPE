@@ -3,8 +3,14 @@ import { NextResponse } from "next/server";
 
 import { getApiUser, unauthorized } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { FileImage, Save, UploadCloud, X } from "lucide-react";
 import { startTransition, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
+import { CourseImage } from "@/components/courses/course-image";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -424,7 +424,7 @@ export function CourseForm({ mode, course }: CourseFormProps) {
                 id="imageFiles"
                 name="imageFiles"
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                accept="image/png,image/jpeg,image/webp"
                 multiple
                 onChange={handleFileSelection}
               />
@@ -503,7 +503,7 @@ export function CourseForm({ mode, course }: CourseFormProps) {
                 <div className="grid grid-cols-2 gap-3">
                   {course.images.map((image) => (
                     <div key={image.id} className="relative aspect-square overflow-hidden rounded-3xl">
-                      <Image
+                      <CourseImage
                         alt={image.alt}
                         className="object-cover"
                         fill

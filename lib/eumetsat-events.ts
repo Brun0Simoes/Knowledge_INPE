@@ -95,7 +95,20 @@ function extractFirstUrl(value: string | null) {
   }
 
   const match = value.match(/https?:\/\/[^\s<>"')\]]+/i);
-  return match?.[0] ?? null;
+  return normalizeExternalUrl(match?.[0] ?? null);
+}
+
+function normalizeExternalUrl(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 function addHoursIso(value: string, hours: number) {
@@ -206,7 +219,7 @@ function parsePortalEvent(doc: EumetsatSolrDoc): ExternalTrainingEvent | null {
 
   const endDate = normalizePortalDate(asString(doc.endDate), collection) ?? addHoursIso(startDate, 1);
   const registrationHowTo = firstString(doc.tra_cal_events_registrationHowto);
-  const contactUrl = firstString(doc.tra_cal_events_contactUrl) ?? getPortalLink(doc, collection);
+  const contactUrl = normalizeExternalUrl(firstString(doc.tra_cal_events_contactUrl)) ?? getPortalLink(doc, collection);
   const registrationUrl = extractFirstUrl(registrationHowTo) ?? getPortalLink(doc, collection);
 
   return {

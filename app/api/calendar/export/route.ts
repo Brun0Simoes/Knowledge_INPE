@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { forbidden, getApiUser, unauthorized } from "@/lib/access";
+import { getConfiguredAppOrigin } from "@/lib/app-origin";
 import { buildCalendarExportIcs, getCalendarEvents } from "@/lib/calendar-events";
 import { filterCalendarEvents } from "@/lib/calendar-shared";
 
@@ -22,15 +23,7 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  // Prefer forwarded headers so exported links stay correct behind Tailscale,
-  // reverse proxies or a future production load balancer.
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  const requestHost = request.headers.get("host");
-  const publicOrigin =
-    forwardedHost || requestHost
-      ? `${forwardedProto ?? url.protocol.replace(":", "")}://${forwardedHost ?? requestHost}`
-      : url.origin;
+  const publicOrigin = getConfiguredAppOrigin();
   const parsed = exportQuerySchema.safeParse({
     month: url.searchParams.get("month") ?? undefined,
     source: url.searchParams.get("source") ?? undefined,

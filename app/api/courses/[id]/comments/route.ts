@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { getApiUser, unauthorized } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 import { commentSchema } from "@/lib/schemas/interaction";
 
 type RouteContext = {
@@ -11,6 +12,11 @@ type RouteContext = {
 };
 
 export async function POST(request: Request, { params }: RouteContext) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

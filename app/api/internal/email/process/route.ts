@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "crypto";
+
 import { NextResponse } from "next/server";
 
 import { getEmailProcessorSecret, processEmailQueue } from "@/lib/mailer";
@@ -5,8 +7,10 @@ import { getEmailProcessorSecret, processEmailQueue } from "@/lib/mailer";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const expectedSecret = getEmailProcessorSecret();
   const providedSecret = request.headers.get("x-email-processor-secret");
-  if (!providedSecret || providedSecret !== getEmailProcessorSecret()) {
+
+  if (!expectedSecret || !providedSecret || !safeCompareSecret(providedSecret, expectedSecret)) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
@@ -20,4 +24,15 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json(result);
+}
+
+function safeCompareSecret(providedSecret: string, expectedSecret: string) {
+  const provided = Buffer.from(providedSecret);
+  const expected = Buffer.from(expectedSecret);
+
+  if (provided.length !== expected.length) {
+    return false;
+  }
+
+  return timingSafeEqual(provided, expected);
 }

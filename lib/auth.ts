@@ -5,17 +5,21 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 
+import { getAuthSecret } from "@/lib/auth-secret";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, clearRateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/schemas/auth";
 
 const googleEnabled = Boolean(
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
 );
 const SESSION_PROFILE_SYNC_WINDOW_MS = 5 * 60 * 1000;
+const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_RATE_LIMIT_ATTEMPTS = 8;
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  secret: process.env.NEXTAUTH_SECRET ?? "dev-secret-change-me",
+  secret: getAuthSecret(),
   session: {
     strategy: "jwt",
   },
@@ -36,8 +40,19 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const normalizedEmail = parsed.data.email.trim().toLowerCase();
+        const rateLimitKey = `login:${normalizedEmail}`;
+        const rateLimit = checkRateLimit(rateLimitKey, {
+          limit: LOGIN_RATE_LIMIT_ATTEMPTS,
+          windowMs: LOGIN_RATE_LIMIT_WINDOW_MS,
+        });
+
+        if (!rateLimit.allowed) {
+          return null;
+        }
+
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
+          where: { email: normalizedEmail },
         });
 
         if (!user?.passwordHash) {
@@ -48,6 +63,8 @@ export const authOptions: NextAuthOptions = {
         if (!isValid) {
           return null;
         }
+
+        clearRateLimit(rateLimitKey);
 
         return {
           id: user.id,

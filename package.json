@@ -20,8 +20,8 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@next-auth/prisma-adapter": "^1.0.7",
-    "@prisma/adapter-better-sqlite3": "^7.6.0",
-    "@prisma/client": "^7.6.0",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -38,10 +38,10 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^1.7.0",
-    "next": "16.2.1",
+    "next": "^16.2.4",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",
-    "prisma": "^7.6.0",
+    "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.72.0",
@@ -56,9 +56,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "^16.2.4",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@hono/node-server": "^1.19.13",
+    "cookie": "^0.7.2",
+    "hono": "^4.12.14",
+    "postcss": "^8.5.10"
   }
 }

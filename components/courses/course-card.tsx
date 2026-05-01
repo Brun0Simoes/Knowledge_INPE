@@ -1,9 +1,9 @@
 "use client";
 
 import { Heart, MessageSquareText, Star } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
+import { CourseImage } from "@/components/courses/course-image";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -31,7 +31,7 @@ export function CourseCard({ course }: CourseCardProps) {
     <Link href={`/courses/${course.slug}`}>
       <Card className="group paper-panel overflow-hidden border-zinc-200/80 transition duration-300 hover:-translate-y-1 hover:shadow-[0_32px_90px_-40px_rgba(15,23,42,0.3)] dark:border-white/10 dark:shadow-[0_32px_90px_-40px_rgba(2,8,23,0.65)]">
         <div className="relative aspect-[16/10] overflow-hidden">
-          <Image
+          <CourseImage
             alt={course.title}
             className="object-cover transition duration-500 group-hover:scale-105"
             fill

@@ -1,10 +1,10 @@
 import { CourseStatus } from "@prisma/client";
 import { CalendarDays, Heart, MessageSquareText, Star } from "lucide-react";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { CourseCard } from "@/components/courses/course-card";
 import { CourseEngagementPanel } from "@/components/courses/course-engagement-panel";
+import { CourseImage } from "@/components/courses/course-image";
 import { CourseVisitButton } from "@/components/courses/course-visit-button";
 import { RatingStars } from "@/components/courses/rating-stars";
 import { RecordCourseView } from "@/components/courses/record-course-view";
@@ -120,7 +120,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       <section className="overflow-hidden rounded-[36px] border border-white/60 bg-white/90 shadow-[0_32px_120px_-52px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#14263a]/88">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
           <div className="relative min-h-[320px]">
-            <Image
+            <CourseImage
               alt={course.title}
               className="object-cover"
               fill

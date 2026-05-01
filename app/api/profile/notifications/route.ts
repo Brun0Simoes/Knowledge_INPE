@@ -3,9 +3,15 @@ import { NextResponse } from "next/server";
 
 import { getApiUser, unauthorized } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 import { notificationPreferenceSchema } from "@/lib/schemas/interaction";
 
 export async function PATCH(request: Request) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

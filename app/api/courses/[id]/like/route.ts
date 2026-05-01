@@ -4,12 +4,18 @@ import { NextResponse } from "next/server";
 
 import { getApiUser, unauthorized } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function POST(_: Request, { params }: RouteContext) {
+export async function POST(request: Request, { params }: RouteContext) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

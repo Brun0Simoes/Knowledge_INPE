@@ -11,6 +11,7 @@ import {
 } from "@/lib/courses";
 import { invalidateCalendarEventsCache } from "@/lib/calendar-events";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 import { removeUploadedFiles } from "@/lib/uploads";
 
 export const runtime = "nodejs";
@@ -20,6 +21,11 @@ type RouteContext = {
 };
 
 export async function PATCH(request: Request, { params }: RouteContext) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();
@@ -116,7 +122,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   return NextResponse.json(updatedCourse);
 }
 
-export async function DELETE(_: Request, { params }: RouteContext) {
+export async function DELETE(request: Request, { params }: RouteContext) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

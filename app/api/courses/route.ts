@@ -4,10 +4,16 @@ import { NextResponse } from "next/server";
 import { forbidden, getApiUser, unauthorized } from "@/lib/access";
 import { buildCourseImages, ensureUniqueCourseSlug, parseCourseFormData } from "@/lib/courses";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

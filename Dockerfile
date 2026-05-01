@@ -26,7 +26,6 @@ COPY . .
 
 ENV DATABASE_URL=file:./data/knowledge.db
 ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_SECRET=dev-secret-change-me
 
 CMD ["npm", "run", "prisma:migrate"]
 
@@ -37,7 +36,6 @@ COPY . .
 
 ENV DATABASE_URL=file:./prisma/dev.db
 ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_SECRET=build-secret-change-me
 
 RUN npm run build
 

@@ -8,12 +8,18 @@ import { clearPublishedFeaturedCourses } from "@/lib/courses";
 import { queueCoursePublicationEmail, triggerEmailBatchProcessing } from "@/lib/mailer";
 import { createCoursePublicationNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { enforceSameOriginRequest } from "@/lib/request-security";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function POST(_: Request, { params }: RouteContext) {
+export async function POST(request: Request, { params }: RouteContext) {
+  const originError = enforceSameOriginRequest(request);
+  if (originError) {
+    return originError;
+  }
+
   const user = await getApiUser();
   if (!user) {
     return unauthorized();

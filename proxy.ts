@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+import { getAuthSecret } from "@/lib/auth-secret";
 import { PUBLIC_AUTH_ROUTES } from "@/lib/constants";
 
 export async function proxy(request: NextRequest) {
@@ -13,7 +14,7 @@ export async function proxy(request: NextRequest) {
   // happens inside server components and route handlers.
   const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET ?? "dev-secret-change-me",
+    secret: getAuthSecret(),
   });
 
   if (!token && !isPublicAuthRoute && !isInternalEmailProcessorRoute) {

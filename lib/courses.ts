@@ -2,7 +2,7 @@ import { CourseImageSource, CourseStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { courseInputSchema } from "@/lib/schemas/course";
-import { saveUploadedFiles, validateImageFiles } from "@/lib/uploads";
+import { saveUploadedFiles, validateImageFileContents, validateImageFiles } from "@/lib/uploads";
 import { createCourseSlug, parseMultilineUrls } from "@/lib/utils";
 
 function toBoolean(value: FormDataEntryValue | null) {
@@ -49,6 +49,14 @@ export async function parseCourseFormData(
     return {
       success: false as const,
       error: fileValidationError,
+    };
+  }
+
+  const fileContentValidationError = await validateImageFileContents(imageFiles);
+  if (fileContentValidationError) {
+    return {
+      success: false as const,
+      error: fileContentValidationError,
     };
   }
 

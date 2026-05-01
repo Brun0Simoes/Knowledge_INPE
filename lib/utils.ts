@@ -114,11 +114,27 @@ export function getPrimaryCourseImage(images: Array<{ url: string }>) {
 }
 
 export function getSafeCallbackUrl(value?: string | null) {
-  if (!value || !value.startsWith("/")) {
+  if (!value) {
     return "/dashboard";
   }
 
-  return value;
+  const trimmed = value.trim();
+
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || /[\\\s]/.test(trimmed)) {
+    return "/dashboard";
+  }
+
+  try {
+    const parsed = new URL(trimmed, "http://knowledge.local");
+
+    if (parsed.origin !== "http://knowledge.local") {
+      return "/dashboard";
+    }
+
+    return `${parsed.pathname}${parsed.search}${parsed.hash}` || "/dashboard";
+  } catch {
+    return "/dashboard";
+  }
 }
 
 export function getClientRedirectUrl(value?: string | null, fallback = "/dashboard") {
@@ -129,7 +145,7 @@ export function getClientRedirectUrl(value?: string | null, fallback = "/dashboa
   }
 
   if (value.startsWith("/")) {
-    return value;
+    return getSafeCallbackUrl(value);
   }
 
   if (typeof window === "undefined") {
@@ -138,7 +154,12 @@ export function getClientRedirectUrl(value?: string | null, fallback = "/dashboa
 
   try {
     const parsed = new URL(value, window.location.origin);
-    return `${parsed.pathname}${parsed.search}${parsed.hash}` || safeFallback;
+
+    if (parsed.origin !== window.location.origin) {
+      return safeFallback;
+    }
+
+    return getSafeCallbackUrl(`${parsed.pathname}${parsed.search}${parsed.hash}`);
   } catch {
     return safeFallback;
   }
