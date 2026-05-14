@@ -50,8 +50,7 @@ docker compose down
 
 ## Credenciais seeded
 
-- admin: `admin@inpe.local` / `Admin12345`
-- usuario: `ana@inpe.local` / `Usuario12345`
+O seed cria administradores operacionais e gera senhas aleatorias no momento da execucao. As senhas aparecem somente no terminal do operador e nao devem ser copiadas para documentacao, commits ou issues.
 
 ## Variaveis de ambiente mais importantes
 
@@ -61,10 +60,11 @@ docker compose down
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
 
-### Login Google
+### YouTube
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+- `YOUTUBE_API_KEY`
+- `YOUTUBE_CHANNEL_ID`
+- `YOUTUBE_PLAYLIST_CACHE_SECONDS`
 
 ### SMTP
 
@@ -83,6 +83,7 @@ docker compose down
 - `EMAIL_BATCH_SIZE`
 - `EMAIL_SEND_CONCURRENCY`
 - `EMAIL_MAX_RECIPIENTS_PER_RUN`
+- `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT`
 
 ## Fluxos operacionais
 
@@ -96,6 +97,8 @@ docker compose down
    - aba de notificacoes
    - `EmailBatch` no Prisma Studio
    - calendario e `.ics`
+
+Ao publicar um novo curso, a fila de e-mail inclui todos os usuarios cadastrados. O envio respeita `EMAIL_DAILY_SEND_LIMIT`; por padrao, `90%` da janela fica para avisos de curso e `10%` para recuperacao de senha. Se a cota acabar, os destinatarios pendentes ficam em `EmailBatchRecipient` e continuam no processamento seguinte sem reenviar para quem ja recebeu ou ja entrou na fila daquele curso.
 
 ### Reprocessar e-mail bloqueado
 
@@ -121,16 +124,11 @@ Tabelas mais usadas no dia a dia:
 
 ## Troubleshooting
 
-### O login Google nao aparece
-
-As credenciais `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` nao estao configuradas.
-
 ### O curso publicou mas o e-mail nao saiu
 
 Verifique:
 
 - se o SMTP esta configurado
-- se o usuario ativou `notificationOptIn`
 - se o lote ficou `BLOCKED`, `QUEUED` ou `COMPLETED_WITH_ERRORS`
 
 ### O calendario externo ficou vazio

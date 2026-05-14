@@ -33,7 +33,6 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
       email: "",
       password: "",
       confirmPassword: "",
-      notificationOptIn: true,
     },
   });
 
@@ -118,15 +117,6 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
           <p className="text-sm text-rose-600">{form.formState.errors.confirmPassword.message}</p>
         ) : null}
       </div>
-
-      <label className="flex items-start gap-3 rounded-3xl border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 dark:border-white/10 dark:bg-[#102132] dark:text-zinc-300">
-        <input
-          className="mt-1 h-4 w-4 rounded border-zinc-300 bg-white text-teal-600 accent-teal-600 dark:border-white/16 dark:bg-[#08111b] dark:accent-teal-400"
-          type="checkbox"
-          {...form.register("notificationOptIn")}
-        />
-        {messages.auth.notificationOptIn}
-      </label>
 
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 

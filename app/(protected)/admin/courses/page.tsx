@@ -13,7 +13,7 @@ import { requireAdminPage } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
-import { formatCompactNumber, formatDate, formatRating } from "@/lib/utils";
+import { formatCompactNumber, formatDate, formatDateTimeRange, formatRating } from "@/lib/utils";
 
 export default async function AdminCoursesPage() {
   const language = await getServerLanguage();
@@ -139,6 +139,12 @@ export default async function AdminCoursesPage() {
                       {messages.common.averageRating}: {formatRating(course.metrics.averageRating, language)}
                     </p>
                     <p>{messages.common.likes}: {formatCompactNumber(course.metrics.likes, language)}</p>
+                    <p>
+                      {messages.course.courseDate}:{" "}
+                      {course.startsAt
+                        ? formatDateTimeRange(course.startsAt, course.endsAt, language)
+                        : messages.common.prepare}
+                    </p>
                     <p>
                       {messages.common.published}:{" "}
                       {course.publishedAt ? formatDate(course.publishedAt, language) : messages.common.waitingRelease}

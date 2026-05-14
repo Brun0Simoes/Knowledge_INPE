@@ -60,7 +60,7 @@ Concentra regras de negocio e adaptadores.
 
 - `schema.prisma` modelagem completa
 - `migrate.ts` bootstrap/migracao local
-- `seed.ts` dados ficticios
+- `seed.ts` dados operacionais iniciais com senhas administrativas geradas em tempo de execucao
 - `process-email-queue.ts` drenagem manual da fila de e-mail
 
 ## Fluxo de autenticacao
@@ -69,7 +69,6 @@ Concentra regras de negocio e adaptadores.
 
 - `NextAuth` com estrategia de sessao em `JWT`
 - `CredentialsProvider` para e-mail/senha
-- `GoogleProvider` habilitado somente quando as credenciais existem
 - `proxy.ts` para gate otimista de rotas protegidas
 
 ### Fluxo
@@ -77,7 +76,7 @@ Concentra regras de negocio e adaptadores.
 1. O usuario entra por `login` ou `register`.
 2. `proxy.ts` redireciona anonimos para `/login`.
 3. Paginas e route handlers repetem a validacao com `requirePageUser`, `requireAdminPage` e `getApiUser`.
-4. O callback `jwt` sincroniza `role` e `notificationOptIn` com o banco em janela curta, reduzindo consultas repetidas.
+4. O callback `jwt` sincroniza perfil e permissao com o banco em janela curta, reduzindo consultas repetidas.
 
 ## Fluxo de cursos
 
@@ -109,7 +108,7 @@ Resultado:
 3. Se estiver marcado como destaque, os demais destaques publicados sao removidos.
 4. O sistema cria:
    - notificacao interna para todos os usuarios
-   - lote de e-mail para quem ativou opt-in
+   - lote de e-mail para todos os usuarios cadastrados, com prioridade por uso da plataforma
 5. O calendario invalida o cache para refletir o novo evento.
 
 ### Exclusao

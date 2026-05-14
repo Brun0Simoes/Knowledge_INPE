@@ -5,6 +5,18 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "www.youtube.com",
+      },
+    ],
+  },
   async headers() {
     const contentSecurityPolicy = [
       "default-src 'self'",

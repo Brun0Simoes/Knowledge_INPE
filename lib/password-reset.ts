@@ -66,7 +66,7 @@ export async function requestPasswordResetCode(email: string): Promise<RequestRe
   const code = generateResetCode();
   const codeHash = await hash(code, 12);
 
-  await prisma.$transaction([
+  const [, resetCode] = await prisma.$transaction([
     prisma.passwordResetCode.updateMany({
       where: {
         userId: user.id,
@@ -84,6 +84,9 @@ export async function requestPasswordResetCode(email: string): Promise<RequestRe
         codeHash,
         expiresAt,
       },
+      select: {
+        id: true,
+      },
     }),
   ]);
 
@@ -94,18 +97,31 @@ export async function requestPasswordResetCode(email: string): Promise<RequestRe
       expiresAt,
     });
 
+    await recordPasswordResetEmailDelivery({
+      id: resetCode.id,
+      sent: emailResult.sent,
+      reason: emailResult.reason,
+    });
+
     return {
       userFound: true,
       emailSent: emailResult.sent,
-      throttled: false,
+      throttled: Boolean(emailResult.throttled),
       reason: emailResult.reason ?? undefined,
     };
   } catch (error) {
+    const reason = error instanceof Error ? error.message : "Falha no envio do email.";
+    await recordPasswordResetEmailDelivery({
+      id: resetCode.id,
+      sent: false,
+      reason,
+    });
+
     return {
       userFound: true,
       emailSent: false,
       throttled: false,
-      reason: error instanceof Error ? error.message : "Falha no envio do email.",
+      reason,
     };
   }
 }
@@ -207,4 +223,26 @@ async function consumeResetCode(id: string, consumedAt: Date) {
       updatedAt: consumedAt,
     },
   });
+}
+
+async function recordPasswordResetEmailDelivery({
+  id,
+  sent,
+  reason,
+}: {
+  id: string;
+  sent: boolean;
+  reason?: string | null;
+}) {
+  await prisma.passwordResetCode.update({
+    where: { id },
+    data: {
+      emailSentAt: sent ? new Date() : null,
+      emailSendError: sent ? null : truncateReason(reason ?? "Falha no envio do email."),
+    },
+  });
+}
+
+function truncateReason(reason: string) {
+  return reason.length > 500 ? `${reason.slice(0, 497)}...` : reason;
 }

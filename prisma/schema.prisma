@@ -60,7 +60,6 @@ model User {
   image              String?
   passwordHash       String?
   role               UserRole              @default(USER)
-  notificationOptIn  Boolean               @default(false)
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
   accounts           Account[]
@@ -119,11 +118,14 @@ model PasswordResetCode {
   expiresAt    DateTime
   consumedAt   DateTime?
   attemptCount Int       @default(0)
+  emailSentAt  DateTime?
+  emailSendError String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([email, createdAt])
+  @@index([emailSentAt])
   @@index([userId, consumedAt, expiresAt])
 }
 
@@ -137,6 +139,8 @@ model Course {
   status       CourseStatus    @default(DRAFT)
   isFeatured   Boolean         @default(false)
   authorId     String
+  startsAt     DateTime?
+  endsAt       DateTime?
   publishedAt  DateTime?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -150,6 +154,7 @@ model Course {
   notifications Notification[]
 
   @@index([status, publishedAt])
+  @@index([status, startsAt])
   @@index([authorId])
 }
 
@@ -248,6 +253,7 @@ model EmailBatchRecipient {
   email        String
   status       EmailRecipientStatus @default(PENDING)
   attemptCount Int                  @default(0)
+  priorityScore Int                 @default(0)
   lastAttemptAt DateTime?
   errorMessage String?
   sentAt       DateTime?
@@ -256,6 +262,7 @@ model EmailBatchRecipient {
   user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([batchId, status])
+  @@index([batchId, status, priorityScore])
   @@index([batchId, attemptCount])
   @@index([email])
 }

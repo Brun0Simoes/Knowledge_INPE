@@ -16,7 +16,7 @@ import { requirePageUser } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
-import { formatCompactNumber, formatDate, formatRating, formatRelativeDate } from "@/lib/utils";
+import { formatCompactNumber, formatDate, formatDateTimeRange, formatRating, formatRelativeDate } from "@/lib/utils";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -112,6 +112,12 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const relatedSummary = summarizeCatalog(relatedCourses);
   const initialReview = course.reviews.find((review) => review.userId === user.id) ?? null;
   const initialLiked = course.likes.some((like) => like.userId === user.id);
+  const scheduleLabel = course.startsAt
+    ? formatDateTimeRange(course.startsAt, course.endsAt, language)
+    : course.publishedAt
+      ? formatDate(course.publishedAt, language)
+      : messages.common.prepare;
+  const scheduleTitle = course.startsAt ? messages.course.courseDate : messages.common.published;
 
   return (
     <div className="space-y-8">
@@ -163,10 +169,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
               <div className="rounded-3xl bg-zinc-50 p-4 dark:bg-[#102132]">
                 <CalendarDays className="h-4 w-4 text-teal-700 dark:text-teal-200" />
-                <p className="mt-3 font-heading text-xl dark:text-zinc-100">
-                  {course.publishedAt ? formatDate(course.publishedAt, language) : messages.common.prepare}
+                <p className="mt-3 font-heading text-base leading-7 dark:text-zinc-100">
+                  {scheduleLabel}
                 </p>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">{messages.common.published}</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">{scheduleTitle}</p>
               </div>
             </div>
 
@@ -184,8 +190,12 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <div className="mt-5 space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
                 <div className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-teal-700 dark:text-teal-200" />
-                  {messages.course.publishedIn}{" "}
-                  {course.publishedAt ? formatDate(course.publishedAt, language) : messages.common.draft}
+                  {course.startsAt ? messages.course.courseDate : messages.course.publishedIn}{" "}
+                  {course.startsAt
+                    ? formatDateTimeRange(course.startsAt, course.endsAt, language)
+                    : course.publishedAt
+                      ? formatDate(course.publishedAt, language)
+                      : messages.common.draft}
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 text-teal-700 dark:text-teal-200" />

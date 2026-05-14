@@ -9,6 +9,8 @@ type AnalyticsCourse = {
   summary: string;
   status: CourseStatus;
   isFeatured: boolean;
+  startsAt: Date | null;
+  endsAt: Date | null;
   publishedAt: Date | null;
   images: CourseImage[];
   likes: Array<{ userId: string }>;

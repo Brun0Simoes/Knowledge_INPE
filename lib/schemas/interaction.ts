@@ -28,10 +28,6 @@ export const courseEventSchema = z.object({
   type: z.nativeEnum(CourseEventType),
 });
 
-export const notificationPreferenceSchema = z.object({
-  notificationOptIn: z.boolean(),
-});
-
 export const notificationReadSchema = z.object({
   read: z.boolean(),
 });

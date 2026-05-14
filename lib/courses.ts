@@ -65,6 +65,8 @@ export async function parseCourseFormData(
     summary: formData.get("summary"),
     description: formData.get("description"),
     externalUrl: formData.get("externalUrl"),
+    startsAt: formData.get("startsAt"),
+    endsAt: formData.get("endsAt"),
     isFeatured: toBoolean(formData.get("isFeatured")),
     imageUrls: parseMultilineUrls(String(formData.get("imageUrls") ?? "")),
   });

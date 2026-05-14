@@ -3,6 +3,8 @@ export type PersistedCourseFormState = {
   summary: string;
   description: string;
   externalUrl: string;
+  startsAt: string;
+  endsAt: string;
   imageUrls: string;
   isFeatured: boolean;
   savedAt: string;
@@ -33,9 +35,11 @@ export function hasMeaningfulCourseDraft(
   return Boolean(
     draft.title.trim() ||
       draft.summary.trim() ||
-      draft.description.trim() ||
-      draft.externalUrl.trim() ||
-      draft.imageUrls.trim() ||
+    draft.description.trim() ||
+    draft.externalUrl.trim() ||
+    draft.startsAt.trim() ||
+    draft.endsAt.trim() ||
+    draft.imageUrls.trim() ||
       draft.isFeatured ||
       files.length,
   );

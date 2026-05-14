@@ -64,7 +64,6 @@ export default async function ProtectedLayout({
                     email={user.email ?? ""}
                     image={user.image}
                     name={user.name ?? messages.layout.guestUser}
-                    notificationOptIn={user.notificationOptIn}
                     role={user.role}
                   />
                 </div>

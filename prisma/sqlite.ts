@@ -1,4 +1,4 @@
-import { mkdirSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { DatabaseSync } from "node:sqlite";
 
@@ -21,6 +21,8 @@ function resolveDatabasePath() {
 export function ensureDatabaseSchema() {
   const databasePath = resolveDatabasePath();
   mkdirSync(path.dirname(databasePath), { recursive: true });
+  copySeedDatabaseIfMissing(databasePath);
+  copySeedUploadsIfAvailable();
 
   const db = new DatabaseSync(databasePath);
 
@@ -35,7 +37,6 @@ export function ensureDatabaseSchema() {
       "image" TEXT,
       "passwordHash" TEXT,
       "role" TEXT NOT NULL DEFAULT 'USER',
-      "notificationOptIn" BOOLEAN NOT NULL DEFAULT 0,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -84,6 +85,8 @@ export function ensureDatabaseSchema() {
       "expiresAt" DATETIME NOT NULL,
       "consumedAt" DATETIME,
       "attemptCount" INTEGER NOT NULL DEFAULT 0,
+      "emailSentAt" DATETIME,
+      "emailSendError" TEXT,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
@@ -104,6 +107,8 @@ export function ensureDatabaseSchema() {
       "status" TEXT NOT NULL DEFAULT 'DRAFT',
       "isFeatured" BOOLEAN NOT NULL DEFAULT 0,
       "authorId" TEXT NOT NULL,
+      "startsAt" DATETIME,
+      "endsAt" DATETIME,
       "publishedAt" DATETIME,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -215,6 +220,7 @@ export function ensureDatabaseSchema() {
       "email" TEXT NOT NULL,
       "status" TEXT NOT NULL DEFAULT 'PENDING',
       "attemptCount" INTEGER NOT NULL DEFAULT 0,
+      "priorityScore" INTEGER NOT NULL DEFAULT 0,
       "lastAttemptAt" DATETIME,
       "errorMessage" TEXT,
       "sentAt" DATETIME,
@@ -270,9 +276,14 @@ export function ensureDatabaseSchema() {
   ensureColumn(db, "EmailBatch", "completedAt", "DATETIME");
   ensureColumn(db, "EmailBatch", "updatedAt", "DATETIME");
   ensureColumn(db, "EmailBatchRecipient", "attemptCount", "INTEGER NOT NULL DEFAULT 0");
+  ensureColumn(db, "EmailBatchRecipient", "priorityScore", "INTEGER NOT NULL DEFAULT 0");
   ensureColumn(db, "EmailBatchRecipient", "lastAttemptAt", "DATETIME");
+  ensureColumn(db, "Course", "startsAt", "DATETIME");
+  ensureColumn(db, "Course", "endsAt", "DATETIME");
   ensureColumn(db, "PasswordResetCode", "attemptCount", "INTEGER NOT NULL DEFAULT 0");
   ensureColumn(db, "PasswordResetCode", "consumedAt", "DATETIME");
+  ensureColumn(db, "PasswordResetCode", "emailSentAt", "DATETIME");
+  ensureColumn(db, "PasswordResetCode", "emailSendError", "TEXT");
   ensureColumn(db, "PasswordResetCode", "updatedAt", "DATETIME");
   ensureColumn(db, "Notification", "type", "TEXT NOT NULL DEFAULT 'COURSE_PUBLISHED'");
   ensureColumn(db, "Notification", "title", "TEXT");
@@ -291,11 +302,20 @@ export function ensureDatabaseSchema() {
     CREATE INDEX IF NOT EXISTS "EmailBatchRecipient_batchId_attemptCount_idx"
     ON "EmailBatchRecipient"("batchId", "attemptCount");
 
+    CREATE INDEX IF NOT EXISTS "EmailBatchRecipient_batchId_status_priorityScore_idx"
+    ON "EmailBatchRecipient"("batchId", "status", "priorityScore");
+
     CREATE INDEX IF NOT EXISTS "PasswordResetCode_email_createdAt_idx"
     ON "PasswordResetCode"("email", "createdAt");
 
+    CREATE INDEX IF NOT EXISTS "PasswordResetCode_emailSentAt_idx"
+    ON "PasswordResetCode"("emailSentAt");
+
     CREATE INDEX IF NOT EXISTS "PasswordResetCode_userId_consumedAt_expiresAt_idx"
     ON "PasswordResetCode"("userId", "consumedAt", "expiresAt");
+
+    CREATE INDEX IF NOT EXISTS "Course_status_startsAt_idx"
+    ON "Course"("status", "startsAt");
 
     CREATE INDEX IF NOT EXISTS "Notification_createdAt_idx"
     ON "Notification"("createdAt");
@@ -382,6 +402,47 @@ export function ensureDatabaseSchema() {
   db.close();
 
   return databasePath;
+}
+
+function copySeedDatabaseIfMissing(databasePath: string) {
+  const seedDatabasePath = path.resolve(/* turbopackIgnore: true */ process.cwd(), "seed", "knowledge.db");
+
+  if (!existsSync(seedDatabasePath)) {
+    return;
+  }
+
+  const shouldCopySeed = !existsSync(databasePath) || statSync(databasePath).size === 0;
+  if (!shouldCopySeed) {
+    return;
+  }
+
+  copyFileSync(seedDatabasePath, databasePath);
+}
+
+function copySeedUploadsIfAvailable() {
+  const seedUploadsPath = path.resolve(/* turbopackIgnore: true */ process.cwd(), "seed", "uploads");
+  const publicUploadsPath = path.resolve(/* turbopackIgnore: true */ process.cwd(), "public", "uploads");
+
+  copyMissingFiles(seedUploadsPath, publicUploadsPath);
+}
+
+function copyMissingFiles(sourceDirectory: string, targetDirectory: string) {
+  if (!existsSync(sourceDirectory)) {
+    return;
+  }
+
+  mkdirSync(targetDirectory, { recursive: true });
+
+  for (const entry of readdirSync(sourceDirectory, { withFileTypes: true })) {
+    const sourcePath = path.join(sourceDirectory, entry.name);
+    const targetPath = path.join(targetDirectory, entry.name);
+
+    if (entry.isDirectory()) {
+      copyMissingFiles(sourcePath, targetPath);
+    } else if (entry.isFile() && !existsSync(targetPath)) {
+      copyFileSync(sourcePath, targetPath);
+    }
+  }
 }
 
 function ensureColumn(

@@ -82,12 +82,11 @@ export async function POST(request: Request, { params }: RouteContext) {
       select: {
         id: true,
         email: true,
-        notificationOptIn: true,
       },
     });
 
-    // Internal notifications are created for all users, while the e-mail queue
-    // only includes recipients that explicitly opted in.
+    // Internal notifications and the course e-mail queue are created for the
+    // whole user base when a new course is published.
     await createCoursePublicationNotification({
       course: publishedCourse,
       createdById: user.id,
@@ -97,7 +96,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     const batch = await queueCoursePublicationEmail({
       course: publishedCourse,
       createdById: user.id,
-      recipients: recipients.filter((recipient) => recipient.notificationOptIn),
+      recipients,
     });
 
     batchId = batch.id;

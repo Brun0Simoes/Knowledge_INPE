@@ -73,6 +73,28 @@ export function formatDate(date: Date, language: Language = DEFAULT_LANGUAGE) {
   return format(date, formatPattern, { locale });
 }
 
+export function formatDateTime(date: Date, language: Language = DEFAULT_LANGUAGE) {
+  return new Intl.DateTimeFormat(language, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export function formatDateTimeRange(
+  startDate: Date,
+  endDate: Date | null | undefined,
+  language: Language = DEFAULT_LANGUAGE,
+) {
+  if (!endDate) {
+    return formatDateTime(startDate, language);
+  }
+
+  return `${formatDateTime(startDate, language)} - ${formatDateTime(endDate, language)}`;
+}
+
 export function formatRelativeDate(date: Date, language: Language = DEFAULT_LANGUAGE) {
   return formatDistanceToNow(date, {
     addSuffix: true,

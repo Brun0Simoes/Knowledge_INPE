@@ -5,20 +5,17 @@ declare module "next-auth" {
     user: DefaultSession["user"] & {
       id: string;
       role: "USER" | "ADMIN";
-      notificationOptIn: boolean;
     };
   }
 
   interface User {
     role: "USER" | "ADMIN";
-    notificationOptIn: boolean;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role?: "USER" | "ADMIN";
-    notificationOptIn?: boolean;
     profileSyncedAt?: number;
   }
 }

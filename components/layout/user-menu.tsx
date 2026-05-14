@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, LogOut, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
@@ -20,7 +20,6 @@ type UserMenuProps = {
   email: string;
   image?: string | null;
   role: "USER" | "ADMIN";
-  notificationOptIn: boolean;
 };
 
 export function UserMenu({
@@ -28,7 +27,6 @@ export function UserMenu({
   email,
   image,
   role,
-  notificationOptIn,
 }: UserMenuProps) {
   const { messages } = useUiSettings();
   const initials = name
@@ -64,10 +62,6 @@ export function UserMenu({
         <DropdownMenuItem>
           <ShieldCheck className="mr-2 h-4 w-4 text-teal-600" />
           {role === "ADMIN" ? messages.layout.adminAccess : messages.layout.authenticatedAccount}
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <BellRing className="mr-2 h-4 w-4 text-teal-600" />
-          {notificationOptIn ? messages.layout.emailsEnabled : messages.layout.emailsDisabled}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

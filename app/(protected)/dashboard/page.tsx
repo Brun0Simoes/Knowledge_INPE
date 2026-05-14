@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { TrainingCalendarSection } from "@/components/calendar/training-calendar-section";
 import { CourseCard } from "@/components/courses/course-card";
-import { NotificationToggle } from "@/components/dashboard/notification-toggle";
+import { YoutubePlaylistsSection } from "@/components/dashboard/youtube-playlists-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { summarizeCatalog, summarizeCourse } from "@/lib/analytics";
@@ -13,16 +13,13 @@ import { prisma } from "@/lib/prisma";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
 import { formatCompactNumber, formatRating } from "@/lib/utils";
+import { fetchYoutubePlaylists } from "@/lib/youtube-playlists";
 
 export default async function DashboardPage() {
   const language = await getServerLanguage();
   const messages = getMessages(language);
   const user = await requirePageUser();
-  const [dbUser, courses] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: user.id },
-      select: { notificationOptIn: true },
-    }),
+  const [courses, youtubePlaylists] = await Promise.all([
     prisma.course.findMany({
       where: {
         status: CourseStatus.PUBLISHED,
@@ -48,14 +45,13 @@ export default async function DashboardPage() {
         },
       },
     }),
+    fetchYoutubePlaylists({ limit: 12 }),
   ]);
 
   const summary = summarizeCatalog(courses);
   const featuredCourse = courses.find((course) => course.isFeatured);
   const featured = featuredCourse ? summarizeCourse(featuredCourse) : (summary.courses[0] ?? null);
-  const gridCourses = featured
-    ? summary.courses.filter((course) => course.id !== featured.id)
-    : summary.courses;
+  const gridCourses = summary.courses;
 
   return (
     <div className="space-y-8">
@@ -78,7 +74,6 @@ export default async function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <NotificationToggle initialValue={dbUser?.notificationOptIn ?? false} />
               {user.role === "ADMIN" ? (
                 <Button asChild variant="secondary">
                   <Link href="/admin/courses/new">{messages.dashboard.newCourse}</Link>
@@ -126,6 +121,8 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <YoutubePlaylistsSection initialData={youtubePlaylists} />
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
         <section className="space-y-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -161,17 +158,6 @@ export default async function DashboardPage() {
                 </p>
                 <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
                   {messages.dashboard.noPublishedDescription}
-                </p>
-              </CardContent>
-            </Card>
-          ) : gridCourses.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="font-heading text-2xl text-zinc-950 dark:text-zinc-100">
-                  {messages.dashboard.onlyFeaturedTitle}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-                  {messages.dashboard.onlyFeaturedDescription}
                 </p>
               </CardContent>
             </Card>

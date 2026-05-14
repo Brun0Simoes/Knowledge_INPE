@@ -1,4 +1,5 @@
 import {
+  CourseEventType,
   EmailBatchStatus,
   EmailRecipientStatus,
   type Course,
@@ -38,6 +39,7 @@ type MailRuntimeConfig = {
   concurrency: number;
   staleMinutes: number;
   dailySendLimit: number | null;
+  userNotificationQuotaPercent: number;
   dailyWindowHours: number;
 };
 
@@ -45,10 +47,28 @@ type MailTransportBundle = MailRuntimeConfig & {
   transporter: Transporter;
 };
 
+type EmailQuotaCategory = "course-publication" | "password-reset";
+type QueuedRecipient = PublishPayload["recipients"][number] & {
+  priorityScore: number;
+};
+
 const BLOCKED_REASON = "SMTP nao configurado neste ambiente.";
 const DAILY_LIMIT_REASON = "Limite diario de envio atingido; aguardando nova janela.";
+const PASSWORD_RESET_DAILY_LIMIT_REASON =
+  "Cota diaria de recuperacao de senha atingida; tente novamente mais tarde.";
 const SQLITE_SAFE_RECIPIENT_INSERT_CHUNK_SIZE = 200;
 const KNOWLEDGE_LOGO_CID = "knowledge-logo@knowledge";
+const DEFAULT_USER_NOTIFICATION_QUOTA_PERCENT = 90;
+const COURSE_EVENT_PRIORITY_WEIGHTS: Record<CourseEventType, number> = {
+  [CourseEventType.VIEW]: 1,
+  [CourseEventType.CLICK_EXTERNAL]: 4,
+};
+const ACTIVITY_PRIORITY_WEIGHTS = {
+  like: 3,
+  review: 6,
+  comment: 5,
+  notificationRead: 1,
+} as const;
 
 const globalForMailer = globalThis as unknown as {
   mailerTransport?: MailTransportBundle | null;
@@ -63,34 +83,63 @@ export async function queueCoursePublicationEmail({
   const dedupedRecipients = dedupeRecipients(recipients);
   const mailerConfigured = isMailerConfigured();
   const runtimeConfig = getMailRuntimeConfig();
+  const priorityScores = await getRecipientPriorityScores(dedupedRecipients);
 
   // Batch rows are created first so publishing a course never depends on live SMTP
   // latency and can be resumed after restarts.
   return prisma.$transaction(async (tx) => {
+    const existingRecipientRows =
+      dedupedRecipients.length === 0
+        ? []
+        : await tx.emailBatchRecipient.findMany({
+            where: {
+              email: {
+                in: dedupedRecipients.map((recipient) => recipient.email),
+              },
+              batch: {
+                courseId: course.id,
+              },
+            },
+            select: {
+              email: true,
+            },
+          });
+    const existingRecipientEmails = new Set(
+      existingRecipientRows.map((recipient) => recipient.email.trim().toLowerCase()),
+    );
+    const recipientsToQueue = dedupedRecipients
+      .filter((recipient) => !existingRecipientEmails.has(recipient.email))
+      .map((recipient) => ({
+        ...recipient,
+        priorityScore: priorityScores.get(recipient.id) ?? 0,
+      }))
+      .sort(compareRecipientsByPriority);
+
     const batch = await tx.emailBatch.create({
       data: {
         courseId: course.id,
         createdById,
-        totalRecipients: dedupedRecipients.length,
+        totalRecipients: recipientsToQueue.length,
         status:
-          dedupedRecipients.length === 0
+          recipientsToQueue.length === 0
             ? EmailBatchStatus.COMPLETED
             : mailerConfigured
               ? EmailBatchStatus.QUEUED
               : EmailBatchStatus.BLOCKED,
         lastError:
-          dedupedRecipients.length === 0 ? null : mailerConfigured ? null : BLOCKED_REASON,
-        completedAt: dedupedRecipients.length === 0 ? new Date() : null,
+          recipientsToQueue.length === 0 ? null : mailerConfigured ? null : BLOCKED_REASON,
+        completedAt: recipientsToQueue.length === 0 ? new Date() : null,
       },
     });
 
-    for (const chunk of chunkArray(dedupedRecipients, runtimeConfig.recipientInsertChunkSize)) {
+    for (const chunk of chunkArray(recipientsToQueue, runtimeConfig.recipientInsertChunkSize)) {
       await tx.emailBatchRecipient.createMany({
         data: chunk.map((recipient) => ({
           batchId: batch.id,
           userId: recipient.id,
           email: recipient.email.trim().toLowerCase(),
           status: EmailRecipientStatus.PENDING,
+          priorityScore: recipient.priorityScore,
         })),
       });
     }
@@ -141,7 +190,7 @@ export async function processEmailQueue({
     };
   }
 
-  const availableSendCapacity = await getAvailableSendCapacity(runtimeConfig);
+  const availableSendCapacity = await getAvailableSendCapacity(runtimeConfig, "course-publication");
   if (availableSendCapacity <= 0) {
     if (batchId) {
       await markBatchAsQueued(batchId, DAILY_LIMIT_REASON);
@@ -194,6 +243,15 @@ export async function sendPasswordResetEmail({
     return { sent: false, reason: BLOCKED_REASON };
   }
 
+  const availableSendCapacity = await getAvailableSendCapacity(mailer, "password-reset");
+  if (availableSendCapacity <= 0) {
+    return {
+      sent: false,
+      reason: PASSWORD_RESET_DAILY_LIMIT_REASON,
+      throttled: true,
+    };
+  }
+
   await mailer.transporter.sendMail({
     from: mailer.from,
     replyTo: mailer.replyTo,
@@ -230,6 +288,118 @@ function dedupeRecipients(recipients: PublishPayload["recipients"]) {
   }
 
   return Array.from(byEmail.values());
+}
+
+async function getRecipientPriorityScores(recipients: PublishPayload["recipients"]) {
+  const userIds = Array.from(new Set(recipients.map((recipient) => recipient.id)));
+  const scores = new Map(userIds.map((userId) => [userId, 0]));
+
+  if (userIds.length === 0) {
+    return scores;
+  }
+
+  const [events, likes, reviews, comments, readNotifications] = await Promise.all([
+    prisma.courseEvent.groupBy({
+      by: ["userId", "type"],
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.courseLike.groupBy({
+      by: ["userId"],
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.courseReview.groupBy({
+      by: ["userId"],
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.courseComment.groupBy({
+      by: ["userId"],
+      where: {
+        userId: {
+          in: userIds,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.userNotification.groupBy({
+      by: ["userId"],
+      where: {
+        userId: {
+          in: userIds,
+        },
+        readAt: {
+          not: null,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+  ]);
+
+  for (const event of events) {
+    if (!event.userId) {
+      continue;
+    }
+
+    addPriorityScore(
+      scores,
+      event.userId,
+      event._count._all * COURSE_EVENT_PRIORITY_WEIGHTS[event.type],
+    );
+  }
+
+  for (const like of likes) {
+    addPriorityScore(scores, like.userId, like._count._all * ACTIVITY_PRIORITY_WEIGHTS.like);
+  }
+
+  for (const review of reviews) {
+    addPriorityScore(scores, review.userId, review._count._all * ACTIVITY_PRIORITY_WEIGHTS.review);
+  }
+
+  for (const comment of comments) {
+    addPriorityScore(scores, comment.userId, comment._count._all * ACTIVITY_PRIORITY_WEIGHTS.comment);
+  }
+
+  for (const notification of readNotifications) {
+    addPriorityScore(
+      scores,
+      notification.userId,
+      notification._count._all * ACTIVITY_PRIORITY_WEIGHTS.notificationRead,
+    );
+  }
+
+  return scores;
+}
+
+function addPriorityScore(scores: Map<string, number>, userId: string, score: number) {
+  scores.set(userId, (scores.get(userId) ?? 0) + score);
+}
+
+function compareRecipientsByPriority(a: QueuedRecipient, b: QueuedRecipient) {
+  return b.priorityScore - a.priorityScore || a.email.localeCompare(b.email);
 }
 
 async function ensureLegacyQueueCompatibility() {
@@ -292,6 +462,10 @@ function getMailRuntimeConfig(): MailRuntimeConfig {
     concurrency: getPositiveInteger("EMAIL_SEND_CONCURRENCY", 5),
     staleMinutes: getPositiveInteger("EMAIL_BATCH_STALE_MINUTES", 15),
     dailySendLimit: getOptionalPositiveInteger("EMAIL_DAILY_SEND_LIMIT"),
+    userNotificationQuotaPercent: getPercentage(
+      "EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT",
+      DEFAULT_USER_NOTIFICATION_QUOTA_PERCENT,
+    ),
     dailyWindowHours: getPositiveInteger("EMAIL_DAILY_WINDOW_HOURS", 24),
   };
 }
@@ -460,7 +634,7 @@ async function processClaimedBatch(
           },
         ],
       },
-      orderBy: [{ createdAt: "asc" }],
+      orderBy: [{ priorityScore: "desc" }, { createdAt: "asc" }],
       take: Math.min(mailer.batchSize, remainingBudget),
     });
 
@@ -707,21 +881,72 @@ async function drainBatchInBackground(batchId: string) {
   }
 }
 
-async function getAvailableSendCapacity(runtimeConfig: MailRuntimeConfig) {
-  if (!runtimeConfig.dailySendLimit) {
+async function getAvailableSendCapacity(
+  runtimeConfig: MailRuntimeConfig,
+  category: EmailQuotaCategory,
+) {
+  const dailyLimit = getDailyLimitForCategory(runtimeConfig, category);
+  if (dailyLimit === null) {
     return runtimeConfig.maxRecipientsPerRun;
   }
 
-  const sentInWindow = await prisma.emailBatchRecipient.count({
-    where: {
-      status: EmailRecipientStatus.SENT,
-      sentAt: {
-        gte: new Date(Date.now() - runtimeConfig.dailyWindowHours * 60 * 60 * 1000),
-      },
-    },
-  });
+  const windowStartedAt = new Date(
+    Date.now() - runtimeConfig.dailyWindowHours * 60 * 60 * 1000,
+  );
 
-  return Math.max(0, runtimeConfig.dailySendLimit - sentInWindow);
+  const sentInWindow =
+    category === "course-publication"
+      ? await prisma.emailBatchRecipient.count({
+          where: {
+            status: EmailRecipientStatus.SENT,
+            sentAt: {
+              gte: windowStartedAt,
+            },
+          },
+        })
+      : await prisma.passwordResetCode.count({
+          where: {
+            emailSentAt: {
+              gte: windowStartedAt,
+            },
+          },
+        });
+
+  return Math.max(0, dailyLimit - sentInWindow);
+}
+
+function getDailyLimitForCategory(
+  runtimeConfig: MailRuntimeConfig,
+  category: EmailQuotaCategory,
+) {
+  if (!runtimeConfig.dailySendLimit) {
+    return null;
+  }
+
+  const userNotificationLimit = Math.floor(
+    (runtimeConfig.dailySendLimit * runtimeConfig.userNotificationQuotaPercent) / 100,
+  );
+
+  if (category === "course-publication") {
+    return userNotificationLimit;
+  }
+
+  return Math.max(0, runtimeConfig.dailySendLimit - userNotificationLimit);
+}
+
+function getPercentage(name: string, fallback: number) {
+  const value = process.env[name];
+
+  if (value === undefined || value === "") {
+    return fallback;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.min(100, Math.max(0, Math.floor(parsed)));
 }
 
 async function countRemainingRecipients(batchId: string, maxAttempts: number) {
@@ -783,7 +1008,7 @@ function buildCoursePublicationEmailHtml({
         <a href="${externalUrl}" style="display: inline-block; background: #0f766e; color: #ffffff; padding: 12px 18px; border-radius: 999px; text-decoration: none;">Abrir no Moodle</a>
       </div>
       <p style="font-size: 13px; line-height: 1.6; color: #64748b;">
-        Voce recebeu este aviso porque ativou as notificacoes de novos cursos em ${APP_NAME}.
+        Voce recebeu este aviso porque esta cadastrado na ${APP_NAME}.
       </p>
     </div>
   `;

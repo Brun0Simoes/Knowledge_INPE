@@ -87,6 +87,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         summary: parsed.data.summary,
         description: parsed.data.description,
         externalUrl: parsed.data.externalUrl,
+        startsAt: parsed.data.startsAt,
+        endsAt: parsed.data.endsAt,
         isFeatured: parsed.data.isFeatured,
         ...(newImages.length
           ? {

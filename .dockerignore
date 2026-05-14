@@ -15,12 +15,16 @@ out
 *.db-journal
 *.db-shm
 *.db-wal
+!prisma/dev.db
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-public/uploads
+public/uploads/**
+!public/uploads/
+!public/uploads/courses/
+!public/uploads/courses/minicurso-processamento-e-visualizacao-de-dados-de-queimadas-2026-a46bd962-1fe3-440e-ac7e-39de006dbf1b.jpg
 Dockerfile
 docker-compose*.yml

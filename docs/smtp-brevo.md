@@ -46,7 +46,7 @@ npm.cmd run emails:process
 
 - lotes `BLOCKED` passam a ser processados
 - destinatarios `PENDING` viram `SENT`
-- novos cursos publicados disparam email automaticamente para usuarios com `notificationOptIn = true`
+- novos cursos publicados disparam email automaticamente para todos os usuarios cadastrados
 
 ## Limite importante
 
@@ -59,7 +59,8 @@ Se o projeto usar `Google Workspace` e publicar no maximo um curso por dia, ajus
 
 ```env
 EMAIL_DAILY_SEND_LIMIT="1800"
+EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT="90"
 EMAIL_DAILY_WINDOW_HOURS="24"
 ```
 
-Assim o inbox interno continua notificando todos imediatamente, e o e-mail segue em fila quando a cota do dia estiver perto do limite.
+Assim o inbox interno continua notificando todos imediatamente, `1620` envios da janela ficam reservados para avisos de curso e `180` ficam reservados para recuperacao de senha. O e-mail segue em fila quando a cota do dia estiver perto do limite, sem reenviar o mesmo curso para quem ja recebeu.

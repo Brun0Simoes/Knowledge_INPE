@@ -16,11 +16,7 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  const parsed = registerSchema.safeParse({
-    ...body,
-    notificationOptIn:
-      typeof body?.notificationOptIn === "boolean" ? body.notificationOptIn : undefined,
-  });
+  const parsed = registerSchema.safeParse(body);
 
   if (!parsed.success) {
     const firstError =
@@ -62,7 +58,6 @@ export async function POST(request: Request) {
       name: parsed.data.name,
       email: parsed.data.email,
       passwordHash,
-      notificationOptIn: parsed.data.notificationOptIn,
     },
     select: { id: true },
   });

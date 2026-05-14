@@ -12,9 +12,6 @@ export default async function LoginPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
   const language = await getServerLanguage();
   const messages = getMessages(language);
-  const googleEnabled = Boolean(
-    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
-  );
 
   return (
     <div className="space-y-8">
@@ -23,7 +20,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
         <h2 className="font-heading text-4xl text-zinc-950 dark:text-zinc-100">{messages.auth.loginTitle}</h2>
       </div>
 
-      <LoginForm callbackUrl={resolvedSearchParams.callbackUrl} googleEnabled={googleEnabled} />
+      <LoginForm callbackUrl={resolvedSearchParams.callbackUrl} />
 
       <p className="text-sm text-zinc-600 dark:text-zinc-300">
         {messages.auth.noAccount}{" "}

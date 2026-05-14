@@ -1,5 +1,3 @@
-import "server-only";
-
 const DEFAULT_APP_ORIGIN = "http://localhost:3000";
 const ALLOWED_APP_ORIGIN_PROTOCOLS = new Set(["http:", "https:"]);
 

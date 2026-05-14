@@ -29,6 +29,8 @@ type CourseFormProps = {
     summary: string;
     description: string;
     externalUrl: string;
+    startsAt: string | null;
+    endsAt: string | null;
     isFeatured: boolean;
     images: Array<{ id: string; url: string; alt: string }>;
   };
@@ -82,9 +84,27 @@ function buildInitialState(course?: CourseFormProps["course"]): CourseFormState 
     summary: course?.summary ?? "",
     description: course?.description ?? "",
     externalUrl: course?.externalUrl ?? "",
+    startsAt: formatDateTimeLocalInput(course?.startsAt),
+    endsAt: formatDateTimeLocalInput(course?.endsAt),
     imageUrls: "",
     isFeatured: course?.isFeatured ?? false,
   };
+}
+
+function formatDateTimeLocalInput(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+
+  return localDate.toISOString().slice(0, 16);
 }
 
 function formatFileSize(language: string, bytes: number) {
@@ -151,6 +171,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
           summary: persisted.draft.summary,
           description: persisted.draft.description,
           externalUrl: persisted.draft.externalUrl,
+          startsAt: persisted.draft.startsAt ?? "",
+          endsAt: persisted.draft.endsAt ?? "",
           imageUrls: persisted.draft.imageUrls,
           isFeatured: persisted.draft.isFeatured,
         };
@@ -305,6 +327,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
     payload.set("summary", formState.summary);
     payload.set("description", formState.description);
     payload.set("externalUrl", formState.externalUrl);
+    payload.set("startsAt", formState.startsAt);
+    payload.set("endsAt", formState.endsAt);
     payload.set("imageUrls", formState.imageUrls);
 
     if (formState.isFeatured) {
@@ -408,6 +432,32 @@ export function CourseForm({ mode, course }: CourseFormProps) {
               onChange={(event) => updateField("externalUrl", event.target.value)}
             />
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="startsAt">{messages.courseForm.startsAtLabel}</Label>
+              <Input
+                id="startsAt"
+                name="startsAt"
+                type="datetime-local"
+                value={formState.startsAt}
+                onChange={(event) => updateField("startsAt", event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endsAt">{messages.courseForm.endsAtLabel}</Label>
+              <Input
+                id="endsAt"
+                name="endsAt"
+                type="datetime-local"
+                value={formState.endsAt}
+                onChange={(event) => updateField("endsAt", event.target.value)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            {messages.courseForm.scheduleHint}
+          </p>
         </CardContent>
       </Card>
 

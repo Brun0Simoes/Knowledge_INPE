@@ -55,6 +55,8 @@ RUN mkdir -p /app/.next /app/data /app/public/uploads \
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/prisma/dev.db ./seed/knowledge.db
+COPY --from=builder --chown=nextjs:nodejs /app/public/uploads/courses/minicurso-processamento-e-visualizacao-de-dados-de-queimadas-2026-a46bd962-1fe3-440e-ac7e-39de006dbf1b.jpg ./seed/uploads/courses/minicurso-processamento-e-visualizacao-de-dados-de-queimadas-2026-a46bd962-1fe3-440e-ac7e-39de006dbf1b.jpg
 
 USER nextjs
 

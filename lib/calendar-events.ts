@@ -80,14 +80,16 @@ async function getPlatformCalendarEvents(): Promise<CalendarEvent[]> {
       title: true,
       summary: true,
       externalUrl: true,
+      startsAt: true,
+      endsAt: true,
       publishedAt: true,
       createdAt: true,
     },
   });
 
   return courses.map((course) => {
-    const startAt = course.publishedAt ?? course.createdAt;
-    const endAt = new Date(startAt.getTime() + 60 * 60 * 1000);
+    const startAt = course.startsAt ?? course.publishedAt ?? course.createdAt;
+    const endAt = course.endsAt ?? new Date(startAt.getTime() + 60 * 60 * 1000);
 
     return {
       id: `platform-${course.id}`,
@@ -95,7 +97,7 @@ async function getPlatformCalendarEvents(): Promise<CalendarEvent[]> {
       startDate: startAt.toISOString(),
       endDate: endAt.toISOString(),
       format: "ONLINE",
-      eventType: "Course release",
+      eventType: course.startsAt ? "Curso" : "Course release",
       status: "Published",
       attendance: "Open",
       city: "Online",

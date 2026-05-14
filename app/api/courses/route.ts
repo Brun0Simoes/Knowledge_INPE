@@ -46,6 +46,8 @@ export async function POST(request: Request) {
       summary: parsed.data.summary,
       description: parsed.data.description,
       externalUrl: parsed.data.externalUrl,
+      startsAt: parsed.data.startsAt,
+      endsAt: parsed.data.endsAt,
       isFeatured: parsed.data.isFeatured,
       authorId: user.id,
       images: {

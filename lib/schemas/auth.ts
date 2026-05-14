@@ -37,7 +37,6 @@ export const registerSchema = z
       .string()
       .min(8, "Confirme a senha com no minimo 8 caracteres")
       .max(64, "A confirmacao precisa ter no maximo 64 caracteres"),
-    notificationOptIn: z.boolean().default(false),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],

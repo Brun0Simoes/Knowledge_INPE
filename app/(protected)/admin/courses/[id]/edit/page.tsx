@@ -71,6 +71,8 @@ export default async function EditCoursePage({ params }: PageProps) {
           summary: course.summary,
           description: course.description,
           externalUrl: course.externalUrl,
+          startsAt: course.startsAt?.toISOString() ?? null,
+          endsAt: course.endsAt?.toISOString() ?? null,
           isFeatured: course.isFeatured,
           images: course.images,
         }}
