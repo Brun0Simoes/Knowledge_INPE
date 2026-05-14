@@ -62,12 +62,12 @@ docker compose run --rm tools npm run emails:process
 
 Para cenarios com `2000+` usuarios, configure a cota diaria de acordo com o limite real da conta.
 
-Exemplo com 90% da janela reservado para notificacoes de cursos e 10% para recuperacao de senha:
+Exemplo para Google Workspace pago usando o limite diario oficial de `2.000` mensagens por usuario, com 90% da janela reservado para notificacoes de cursos e 10% para recuperacao de senha:
 
 ```env
-EMAIL_DAILY_SEND_LIMIT="1800"
+EMAIL_DAILY_SEND_LIMIT="2000"
 EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT="90"
 EMAIL_DAILY_WINDOW_HOURS="24"
 ```
 
-Assim o inbox interno continua notificando todos imediatamente. Os e-mails que excederem a cota ficam pendentes para a proxima janela, sem duplicar entregas ja enfileiradas ou enviadas.
+Assim o inbox interno continua notificando todos imediatamente. A plataforma reserva ate `1800` mensagens da janela para avisos de curso e `200` para recuperacao de senha. Os e-mails que excederem a cota ficam pendentes para a proxima janela, sem duplicar entregas ja enfileiradas ou enviadas.

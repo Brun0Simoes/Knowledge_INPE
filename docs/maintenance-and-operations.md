@@ -75,7 +75,7 @@ O seed cria administradores operacionais e gera senhas aleatorias no momento da 
 - `SMTP_REQUIRE_TLS`
 - `SMTP_IGNORE_TLS`
 
-Os exemplos versionados usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS. A plataforma continua usando Nodemailer generico, entao outro SMTP pode ser usado se essas variaveis forem substituidas no `.env`.
+Os exemplos versionados usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS e limite diario padrao de `2000` mensagens para Google Workspace pago. A plataforma continua usando Nodemailer generico, entao outro SMTP pode ser usado se essas variaveis forem substituidas no `.env`.
 
 ### Controle de fila
 
@@ -100,7 +100,7 @@ Os exemplos versionados usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS. A 
    - `EmailBatch` no Prisma Studio
    - calendario e `.ics`
 
-Ao publicar um novo curso, a fila de e-mail inclui todos os usuarios cadastrados. O envio respeita `EMAIL_DAILY_SEND_LIMIT`; por padrao, `90%` da janela fica para avisos de curso e `10%` para recuperacao de senha. Se a cota acabar, os destinatarios pendentes ficam em `EmailBatchRecipient` e continuam no processamento seguinte sem reenviar para quem ja recebeu ou ja entrou na fila daquele curso.
+Ao publicar um novo curso, a fila de e-mail inclui todos os usuarios cadastrados. O envio respeita `EMAIL_DAILY_SEND_LIMIT`; com o padrao `2000`, `1800` envios da janela ficam para avisos de curso e `200` ficam para recuperacao de senha. Se a cota acabar, os destinatarios pendentes ficam em `EmailBatchRecipient` e continuam no processamento seguinte sem reenviar para quem ja recebeu ou ja entrou na fila daquele curso.
 
 ### Reprocessar e-mail bloqueado
 

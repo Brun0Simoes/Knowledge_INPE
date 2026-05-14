@@ -160,7 +160,7 @@ Resultado:
 - `nodemailer` com suporte a SMTP pool
 - claim atomico de lotes para evitar processamento duplicado
 - recuperacao de lotes travados apos restart
-- controle de limite diario para provedores como Gmail/Workspace
+- controle de limite diario para Google Workspace/Gmail, com padrao operacional de `2000` mensagens por janela
 
 ### Estados principais
 
@@ -170,7 +170,7 @@ Resultado:
 ### Comportamento
 
 - publicar curso nao espera o SMTP terminar
-- sem SMTP, o lote fica `BLOCKED`
+- se um ambiente nao tiver SMTP valido, o lote fica `BLOCKED`
 - ao configurar SMTP e reprocessar, o lote volta a andar
 
 ## Analytics

@@ -98,11 +98,11 @@ Principais variaveis:
 - `YOUTUBE_PLAYLIST_CACHE_SECONDS`: intervalo minimo de sincronizacao das playlists no servidor. Padrao: `60`.
 - `SMTP_URL` ou `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: envio de e-mail. O exemplo padrao usa Google SMTP (`smtp.gmail.com:587`).
 - `SMTP_FROM` e `SMTP_REPLY_TO`: remetente e resposta dos e-mails.
-- `EMAIL_DAILY_SEND_LIMIT`: limite total de envios por janela.
+- `EMAIL_DAILY_SEND_LIMIT`: limite total de envios por janela. Para Google Workspace pago, o padrao documentado e `2000`.
 - `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT`: percentual do limite reservado para avisos de novos cursos. O restante fica reservado para recuperacao de senha. O padrao e `90`.
 - `EMAIL_DAILY_WINDOW_HOURS` e `EMAIL_SEND_CONCURRENCY`: janela e concorrencia da fila de e-mail.
 
-Sem SMTP configurado, o sistema continua funcionando, mas os envios ficam bloqueados ou nao sao entregues ate a configuracao ser ajustada.
+O ambiente operacional usa SMTP Google (`smtp.gmail.com:587`). Em ambientes sem credenciais SMTP reais, o sistema continua funcionando, mas os envios ficam bloqueados ate a configuracao ser ajustada.
 
 ## Scripts
 
@@ -137,5 +137,5 @@ O seed gera senhas administrativas aleatorias no momento da execucao e imprime e
 - Publicar um curso nao depende da entrega imediata dos e-mails.
 - E-mails de novos cursos sao enfileirados para todos os usuarios cadastrados, priorizados por uso da plataforma, sem reenviar o mesmo curso para quem ja entrou na fila.
 - A dashboard carrega playlists do canal VLab CoE Brasil e atualiza essa area periodicamente pelo navegador.
-- O inbox interno e criado mesmo quando SMTP nao esta configurado.
+- O inbox interno e criado mesmo quando um ambiente especifico ainda nao possui credenciais SMTP.
 - No PowerShell, use `npm.cmd` se a politica local bloquear `npm`.

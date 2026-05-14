@@ -67,7 +67,7 @@ Opcionais por integracao:
 - `EMAIL_SEND_CONCURRENCY`
 
 Nao versionar `.env` com valores reais. Use `.env.example` e `docker.env.example` como contratos publicos.
-Os exemplos publicos usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS. O codigo de envio permanece independente de provedor.
+Os exemplos publicos usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS e `EMAIL_DAILY_SEND_LIMIT=2000` para Google Workspace pago. O codigo de envio permanece independente de provedor.
 
 ## Autenticacao
 
@@ -175,13 +175,12 @@ Tecnica:
 - `EmailBatchRecipient` representa cada destinatario.
 - O envio de novos cursos vai para todos os usuarios cadastrados.
 - A fila respeita limite diario por janela.
-- `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT=90` reserva 90% do limite para avisos de curso; o restante fica para recuperacao de senha.
+- `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT=90` reserva 90% do limite para avisos de curso; com `EMAIL_DAILY_SEND_LIMIT=2000`, isso representa `1800` avisos de curso e `200` recuperacoes de senha por janela.
 - Destinatarios ja enfileirados/entregues para um curso nao recebem duplicidade.
 - Prioridade considera uso da plataforma: views, cliques, curtidas, comentarios e avaliacoes.
 - O pacote SMTP e instalado como `nodemailer8` para usar `nodemailer@8.0.7+` sem satisfazer o peer opcional antigo de `next-auth@4`.
 
-Sem SMTP valido, a aplicacao continua operando e o lote fica bloqueado/pendente para reprocessamento.
-O provedor documentado para operacao atual e Google Workspace/Gmail via `smtp.gmail.com`.
+Com SMTP valido, a fila processa os envios respeitando a cota configurada. Se um ambiente nao tiver credenciais SMTP validas, a aplicacao continua operando e o lote fica bloqueado/pendente para reprocessamento. O provedor documentado para operacao atual e Google Workspace/Gmail via `smtp.gmail.com`.
 
 ## YouTube
 
