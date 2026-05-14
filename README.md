@@ -96,7 +96,7 @@ Principais variaveis:
 - `YOUTUBE_API_KEY`: opcional; usa a YouTube Data API para carregar playlists do canal VLab CoE Brasil.
 - `YOUTUBE_CHANNEL_ID`: opcional; canal usado na consulta de playlists. Padrao: `UCVdve-LRCP08M3gwXTPNmpg`.
 - `YOUTUBE_PLAYLIST_CACHE_SECONDS`: intervalo minimo de sincronizacao das playlists no servidor. Padrao: `60`.
-- `SMTP_URL` ou `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: envio de e-mail.
+- `SMTP_URL` ou `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: envio de e-mail. O exemplo padrao usa Google SMTP (`smtp.gmail.com:587`).
 - `SMTP_FROM` e `SMTP_REPLY_TO`: remetente e resposta dos e-mails.
 - `EMAIL_DAILY_SEND_LIMIT`: limite total de envios por janela.
 - `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT`: percentual do limite reservado para avisos de novos cursos. O restante fica reservado para recuperacao de senha. O padrao e `90`.
@@ -128,7 +128,7 @@ O seed gera senhas administrativas aleatorias no momento da execucao e imprime e
 - [Arquitetura da aplicacao](docs/application-architecture.md)
 - [Operacao e manutencao](docs/maintenance-and-operations.md)
 - [Referencia tecnica de API, Docker e banco](docs/technical-platform-reference.md)
-- [Configuracao SMTP com Brevo](docs/smtp-brevo.md)
+- [Configuracao SMTP com Google Workspace ou Gmail](docs/smtp-google-workspace.md)
 
 ## Notas
 

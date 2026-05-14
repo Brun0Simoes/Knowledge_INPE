@@ -9,7 +9,7 @@ x-app-environment: &app-environment
   YOUTUBE_CHANNEL_ID: "${YOUTUBE_CHANNEL_ID:-UCVdve-LRCP08M3gwXTPNmpg}"
   YOUTUBE_PLAYLIST_CACHE_SECONDS: "${YOUTUBE_PLAYLIST_CACHE_SECONDS:-60}"
   SMTP_URL: "${SMTP_URL:-}"
-  SMTP_HOST: "${SMTP_HOST:-smtp-relay.brevo.com}"
+  SMTP_HOST: "${SMTP_HOST:-smtp.gmail.com}"
   SMTP_PORT: "${SMTP_PORT:-587}"
   SMTP_USER: "${SMTP_USER:-}"
   SMTP_PASS: "${SMTP_PASS:-}"

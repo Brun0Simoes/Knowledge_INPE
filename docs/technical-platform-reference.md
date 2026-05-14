@@ -67,6 +67,7 @@ Opcionais por integracao:
 - `EMAIL_SEND_CONCURRENCY`
 
 Nao versionar `.env` com valores reais. Use `.env.example` e `docker.env.example` como contratos publicos.
+Os exemplos publicos usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS. O codigo de envio permanece independente de provedor.
 
 ## Autenticacao
 
@@ -179,6 +180,7 @@ Tecnica:
 - Prioridade considera uso da plataforma: views, cliques, curtidas, comentarios e avaliacoes.
 
 Sem SMTP valido, a aplicacao continua operando e o lote fica bloqueado/pendente para reprocessamento.
+O provedor documentado para operacao atual e Google Workspace/Gmail via `smtp.gmail.com`.
 
 ## YouTube
 

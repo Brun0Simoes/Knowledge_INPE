@@ -75,6 +75,8 @@ O seed cria administradores operacionais e gera senhas aleatorias no momento da 
 - `SMTP_REQUIRE_TLS`
 - `SMTP_IGNORE_TLS`
 
+Os exemplos versionados usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS. A plataforma continua usando Nodemailer generico, entao outro SMTP pode ser usado se essas variaveis forem substituidas no `.env`.
+
 ### Controle de fila
 
 - `EMAIL_DAILY_SEND_LIMIT`
@@ -102,7 +104,7 @@ Ao publicar um novo curso, a fila de e-mail inclui todos os usuarios cadastrados
 
 ### Reprocessar e-mail bloqueado
 
-1. Configurar SMTP no `.env`
+1. Configurar SMTP no `.env` com Google Workspace/Gmail ou outro provedor autorizado
 2. Reiniciar a aplicacao
 3. Rodar `npm.cmd run emails:process`
 4. Verificar `EmailBatch` e `EmailBatchRecipient`
