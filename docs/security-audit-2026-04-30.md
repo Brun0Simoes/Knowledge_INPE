@@ -4,7 +4,7 @@
 
 Auditoria autorizada executada contra o codigo em `E:\site_inpe` e contra a aplicacao Docker local em `http://127.0.0.1:3000`. O diretorio `eumetsat-calendar-guide/` foi mantido fora do escopo por ser outro projeto.
 
-Foram revisados os pontos principais de uma aplicacao Next.js: Docker/runtime, dependencias, secrets, headers, autenticacao, autorizacao, CSRF, upload, links/redirects, rotas API, XSS/DOM sinks, SSRF por imagens, Host header e abuso de endpoints de login/reset. Nao ficaram vulnerabilidades high/critical conhecidas pelo `npm audit --audit-level=high`; restam riscos moderados/baixos documentados abaixo.
+Foram revisados os pontos principais de uma aplicacao Next.js: Docker/runtime, dependencias, secrets, headers, autenticacao, autorizacao, CSRF, upload, links/redirects, rotas API, XSS/DOM sinks, SSRF por imagens, Host header e abuso de endpoints de login/reset. A revisao posterior do SMTP atualizou o envio para `nodemailer@8.0.7` via alias `nodemailer8`; `npm audit --omit=dev` encerra sem vulnerabilidades conhecidas.
 
 ## Superficie revisada
 
@@ -97,11 +97,12 @@ Foram revisados os pontos principais de uma aplicacao Next.js: Docker/runtime, d
 
 ## Residual
 
-### SEC-R1 - Advisories moderados em `next-auth@4`
+### SEC-R1 - Advisories moderados em `next-auth@4` resolvidos no mailer proprio
 
 - Severidade: Baixa/Media.
-- Evidencia: `npm audit` ainda lista `nodemailer` e `uuid` transitivos via `next-auth`/`@auth/core`, sem fix compativel indicado.
-- Mitigacao atual: o app nao usa Email Provider do NextAuth; no mailer proprio nao configuramos `envelope.size` nem `name` com entrada de usuario.
+- Evidencia anterior: `npm audit` listava `nodemailer` via resolucao de peer opcional do `next-auth@4`.
+- Correcao posterior: o mailer proprio importa `nodemailer@8.0.7` pelo alias npm `nodemailer8`, e o peer opcional do NextAuth fica ausente porque a aplicacao nao usa Email Provider do NextAuth.
+- Validacao: `npm ci`, `npm audit --omit=dev`, `npm run lint` e `npm run build` executados com sucesso.
 
 ### SEC-R2 - Uploads ainda ficam sob `public/uploads`
 

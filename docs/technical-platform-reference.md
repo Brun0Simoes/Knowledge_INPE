@@ -10,7 +10,7 @@ Este documento descreve a plataforma para manutencao por desenvolvedores. Ele ev
 - Prisma ORM 7 com adapter `better-sqlite3`
 - SQLite como banco persistente
 - NextAuth com `CredentialsProvider`
-- Nodemailer para SMTP
+- Nodemailer 8 para SMTP, importado no codigo pelo alias npm `nodemailer8`
 - Docker Compose com imagem `node:24-bookworm-slim`
 
 ## Execucao
@@ -178,6 +178,7 @@ Tecnica:
 - `EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT=90` reserva 90% do limite para avisos de curso; o restante fica para recuperacao de senha.
 - Destinatarios ja enfileirados/entregues para um curso nao recebem duplicidade.
 - Prioridade considera uso da plataforma: views, cliques, curtidas, comentarios e avaliacoes.
+- O pacote SMTP e instalado como `nodemailer8` para usar `nodemailer@8.0.7+` sem satisfazer o peer opcional antigo de `next-auth@4`.
 
 Sem SMTP valido, a aplicacao continua operando e o lote fica bloqueado/pendente para reprocessamento.
 O provedor documentado para operacao atual e Google Workspace/Gmail via `smtp.gmail.com`.
@@ -237,7 +238,7 @@ Medidas aplicadas:
 - uploads limitados por tipo, tamanho e assinatura de arquivo
 - fila SMTP desacoplada da publicacao
 
-`npm audit` aponta uma vulnerabilidade transitiva em `nodemailer` via `next-auth/@auth/core`, sem correcao automatica disponivel no momento da revisao. O codigo da plataforma nao passa `envelope.size` nem `name` controlado por usuario ao Nodemailer.
+`npm audit --omit=dev` foi reexecutado apos atualizar o SMTP para `nodemailer@8.0.7` via alias `nodemailer8` e encerrou sem vulnerabilidades conhecidas.
 
 ## Validacao final
 

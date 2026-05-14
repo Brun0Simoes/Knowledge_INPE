@@ -22,7 +22,7 @@ Plataforma web para publicacao, acompanhamento e descoberta de cursos em ciencia
 - Prisma ORM
 - SQLite
 - NextAuth
-- Nodemailer
+- Nodemailer 8 (`nodemailer8` no `package.json`, alias npm para evitar peer opcional antigo do NextAuth)
 
 ## Docker
 

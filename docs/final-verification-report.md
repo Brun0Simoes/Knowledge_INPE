@@ -81,6 +81,6 @@ docker run site-inpe:latest
 
 ## Observacoes
 
-`npm audit` continua apontando uma vulnerabilidade transitiva associada a `nodemailer` usado por `next-auth/@auth/core`, sem fix automatico disponivel. A plataforma nao expoe os parametros vulneraveis a entrada de usuario no envio SMTP proprio.
+`npm audit --omit=dev` foi reexecutado apos a atualizacao do SMTP para `nodemailer@8.0.7` via alias `nodemailer8` e encerrou sem vulnerabilidades conhecidas.
 
 CodeRabbit foi solicitado, mas a CLI nao estava instalada no ambiente local. A instalacao via script falhou porque `sh` nao esta disponivel e a tentativa por PowerShell retornou falha de canal SSL/TLS.

@@ -5,7 +5,7 @@ import {
   type Course,
   type User,
 } from "@prisma/client";
-import nodemailer, { type Transporter } from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer8";
 
 import { getConfiguredAppOrigin } from "@/lib/app-origin";
 import { isWeakSharedSecret } from "@/lib/auth-secret";
