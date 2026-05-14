@@ -220,6 +220,11 @@ export function TrainingCalendarPanel({
     getDefaultSelectedDay([], startOfMonth(today), "ALL", "ALL"),
   );
   const hasLoadedRef = useRef(false);
+  const viewStateRef = useRef({
+    currentMonth: startOfMonth(today),
+    sourceFilter: "ALL" as CalendarSourceFilter,
+    formatFilter: "ALL" as CalendarFormatFilter,
+  });
 
   const formatters = useMemo(
     () => ({
@@ -262,7 +267,25 @@ export function TrainingCalendarPanel({
           return;
         }
 
-        setEvents(payload.events ?? []);
+        const nextEvents = payload.events ?? [];
+        const { currentMonth: activeMonth, formatFilter: activeFormatFilter, sourceFilter: activeSourceFilter } = viewStateRef.current;
+
+        setEvents(nextEvents);
+        setSelectedDay((previousSelectedDay) => {
+          const filteredNextEvents = filterCalendarEvents(nextEvents, {
+            sourceFilter: activeSourceFilter,
+            formatFilter: activeFormatFilter,
+          });
+
+          if (
+            previousSelectedDay &&
+            filteredNextEvents.some((event) => isCalendarEventActiveOnDay(event, previousSelectedDay))
+          ) {
+            return previousSelectedDay;
+          }
+
+          return getDefaultSelectedDay(nextEvents, activeMonth, activeSourceFilter, activeFormatFilter);
+        });
         setLastUpdatedAt(payload.updatedAt);
         setLoadError(false);
         hasLoadedRef.current = true;
@@ -305,6 +328,10 @@ export function TrainingCalendarPanel({
     };
   }, []);
 
+  useEffect(() => {
+    viewStateRef.current = { currentMonth, sourceFilter, formatFilter };
+  }, [currentMonth, formatFilter, sourceFilter]);
+
   const filteredEvents = useMemo(() => {
     return filterCalendarEvents(events, { sourceFilter, formatFilter });
   }, [events, sourceFilter, formatFilter]);
@@ -332,18 +359,6 @@ export function TrainingCalendarPanel({
     return grouped;
   }, [filteredEvents, visibleDays]);
 
-  useEffect(() => {
-    // Keep the selected day stable when filters change, but fall back to the next
-    // meaningful event if the previous day disappears from the current slice.
-    setSelectedDay((previousSelectedDay) => {
-      if (previousSelectedDay && eventsByDay.has(previousSelectedDay)) {
-        return previousSelectedDay;
-      }
-
-      return getDefaultSelectedDay(events, currentMonth, sourceFilter, formatFilter);
-    });
-  }, [currentMonth, events, eventsByDay, formatFilter, sourceFilter]);
-
   const selectedEvents = eventsByDay.get(selectedDay) ?? [];
   const selectedDate = new Date(`${selectedDay}T12:00:00Z`);
   const exportHref = `/api/calendar/export?month=${currentMonthKey}&source=${sourceFilter}&format=${formatFilter}`;
@@ -354,6 +369,11 @@ export function TrainingCalendarPanel({
     nextSourceFilter: CalendarSourceFilter,
     nextFormatFilter: CalendarFormatFilter,
   ) {
+    viewStateRef.current = {
+      currentMonth: nextMonth,
+      sourceFilter: nextSourceFilter,
+      formatFilter: nextFormatFilter,
+    };
     setSelectedDay(getDefaultSelectedDay(events, nextMonth, nextSourceFilter, nextFormatFilter));
   }
 

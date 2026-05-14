@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "**/next-env.d.ts",
+    "eumetsat-calendar-guide/**",
   ]),
 ]);
 

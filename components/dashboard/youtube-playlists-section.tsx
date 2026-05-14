@@ -27,12 +27,6 @@ export function YoutubePlaylistsSection({ initialData }: YoutubePlaylistsSection
     [data.playlists, selectedId],
   );
 
-  useEffect(() => {
-    if (!selectedPlaylist) {
-      setSelectedId(data.playlists[0]?.id ?? "");
-    }
-  }, [data.playlists, selectedPlaylist]);
-
   const refreshPlaylists = useCallback(async () => {
     setIsRefreshing(true);
 
