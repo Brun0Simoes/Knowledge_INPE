@@ -28,6 +28,13 @@ O banco local padrao usa `DATABASE_URL=file:./prisma/dev.db`.
 
 ### Docker
 
+Configure o `.env` antes do primeiro boot:
+
+```powershell
+Copy-Item docker.env.example .env
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
 ```bash
 docker compose up --build
 ```
@@ -66,7 +73,7 @@ Opcionais por integracao:
 - `EMAIL_DAILY_WINDOW_HOURS`
 - `EMAIL_SEND_CONCURRENCY`
 
-Nao versionar `.env` com valores reais. Use `.env.example` e `docker.env.example` como contratos publicos.
+Nao versionar `.env` com valores reais. Use `.env.example` e `docker.env.example` como contratos publicos. `NEXTAUTH_SECRET` fica vazio nos exemplos para evitar que um placeholder fraco seja aceito pelo Compose e falhe apenas em runtime.
 Os exemplos publicos usam Google SMTP (`smtp.gmail.com:587`) com STARTTLS e `EMAIL_DAILY_SEND_LIMIT=2000` para Google Workspace pago. O codigo de envio permanece independente de provedor.
 
 ## Autenticacao

@@ -35,6 +35,13 @@ Sistema base validado no container:
 
 O Compose sobe a aplicacao web, os route handlers/API do Next.js, o worker de fila de e-mail iniciado pelo servidor, o volume do SQLite e o volume de uploads.
 
+Antes de subir em uma maquina nova, crie o `.env` do Docker a partir do exemplo e preencha `NEXTAUTH_SECRET` com um valor forte:
+
+```powershell
+Copy-Item docker.env.example .env
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
 ```bash
 docker compose up --build
 ```
@@ -86,7 +93,7 @@ prisma/dev.db
 
 ## Variaveis de Ambiente
 
-Use `.env.example` ou `docker.env.example` como referencia.
+Use `.env.example` ou `docker.env.example` como referencia. Em Docker/producao, `NEXTAUTH_SECRET` nao pode ficar vazio nem usar valor de exemplo.
 
 Principais variaveis:
 

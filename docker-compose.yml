@@ -41,7 +41,7 @@ services:
   web:
     build:
       context: .
-    image: site-inpe:latest
+    image: knowledge-inpe:latest
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
@@ -63,7 +63,7 @@ services:
     build:
       context: .
       target: tools
-    image: site-inpe-tools:latest
+    image: knowledge-inpe-tools:latest
     environment:
       <<: *app-environment
     volumes: *app-volumes

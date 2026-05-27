@@ -26,13 +26,20 @@ npm.cmd run dev
 
 ## Docker
 
+Em uma maquina nova, copie o exemplo de variaveis do Docker e preencha `NEXTAUTH_SECRET` com um valor forte antes de iniciar:
+
+```powershell
+Copy-Item docker.env.example .env
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
 ```bash
 docker compose up --build
 ```
 
 O servico `web` usa o build standalone do Next.js e carrega paginas, route handlers/API e o worker de fila de e-mail no mesmo container. O schema SQLite e inicializado automaticamente durante o boot do servidor.
 
-Use `docker.env.example` como referencia para configurar variaveis no `.env` lido pelo Compose. O banco do container usa `DOCKER_DATABASE_URL` para nao conflitar com o `DATABASE_URL` local.
+Use `docker.env.example` como referencia para configurar variaveis no `.env` lido pelo Compose. O banco do container usa `DOCKER_DATABASE_URL` para nao conflitar com o `DATABASE_URL` local. Se `NEXTAUTH_SECRET` ficar vazio, o Compose falha antes do boot; se for fraco, a aplicacao recusa em producao.
 
 Volumes persistentes:
 

@@ -76,7 +76,7 @@ npm run build
 npm audit
 docker compose up -d --build
 docker compose ps
-docker run site-inpe:latest
+docker run knowledge-inpe:latest
 ```
 
 ## Observacoes
