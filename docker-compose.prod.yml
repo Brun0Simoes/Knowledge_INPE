@@ -1,0 +1,97 @@
+# docker-compose.prod.yml
+#
+# Compose de PRODUÇÃO do Knowledge INPE.
+# Não faz build local — usa as imagens publicadas no registry interno do INPE.
+#
+# Imagens utilizadas:
+#   registry.cptec.inpe.br/knowledge        — app Next.js (produção)
+#   registry.cptec.inpe.br/knowledge-tools  — utilitários (migração de banco)
+#
+# Dados persistidos em bind mounts no host, sob ./data:
+#   ./data            — banco SQLite (knowledge.db)
+#   ./data/uploads    — arquivos enviados pelos usuários
+#
+# Configuração:
+#   Copie docker.env.example para .env e preencha as variáveis obrigatórias,
+#   especialmente NEXTAUTH_SECRET (gere com: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
+#
+# Uso:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+
+# Âncora com todas as variáveis de ambiente compartilhadas entre os serviços.
+x-app-environment: &app-environment
+  NODE_ENV: "production"
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  DATABASE_URL: "${DOCKER_DATABASE_URL:-file:./data/knowledge.db}"
+  # URL pública da aplicação — deve incluir o basePath /knowledge.
+  NEXTAUTH_URL: "${NEXTAUTH_URL:-https://moodle.cptec.inpe.br/knowledge}"
+  # Obrigatório: segredo forte para assinar sessões NextAuth.
+  NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?Defina NEXTAUTH_SECRET com um segredo forte antes de iniciar o Docker}"
+  YOUTUBE_API_KEY: "${YOUTUBE_API_KEY:-}"
+  YOUTUBE_CHANNEL_ID: "${YOUTUBE_CHANNEL_ID:-UCVdve-LRCP08M3gwXTPNmpg}"
+  YOUTUBE_PLAYLIST_CACHE_SECONDS: "${YOUTUBE_PLAYLIST_CACHE_SECONDS:-60}"
+  SMTP_URL: "${SMTP_URL:-}"
+  SMTP_HOST: "${SMTP_HOST:-smtp.gmail.com}"
+  SMTP_PORT: "${SMTP_PORT:-587}"
+  SMTP_USER: "${SMTP_USER:-}"
+  SMTP_PASS: "${SMTP_PASS:-}"
+  SMTP_FROM: "${SMTP_FROM:-knowledge <no-reply@example.com>}"
+  SMTP_REPLY_TO: "${SMTP_REPLY_TO:-}"
+  SMTP_SECURE: "${SMTP_SECURE:-false}"
+  SMTP_REQUIRE_TLS: "${SMTP_REQUIRE_TLS:-true}"
+  SMTP_IGNORE_TLS: "${SMTP_IGNORE_TLS:-false}"
+  EMAIL_PROCESSOR_SECRET: "${EMAIL_PROCESSOR_SECRET:-}"
+  EMAIL_MAX_ATTEMPTS: "${EMAIL_MAX_ATTEMPTS:-3}"
+  EMAIL_BATCH_SIZE: "${EMAIL_BATCH_SIZE:-100}"
+  EMAIL_RECIPIENT_INSERT_CHUNK_SIZE: "${EMAIL_RECIPIENT_INSERT_CHUNK_SIZE:-200}"
+  EMAIL_MAX_RECIPIENTS_PER_RUN: "${EMAIL_MAX_RECIPIENTS_PER_RUN:-250}"
+  EMAIL_SEND_CONCURRENCY: "${EMAIL_SEND_CONCURRENCY:-5}"
+  EMAIL_BATCH_STALE_MINUTES: "${EMAIL_BATCH_STALE_MINUTES:-15}"
+  EMAIL_DAILY_SEND_LIMIT: "${EMAIL_DAILY_SEND_LIMIT:-2000}"
+  EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT: "${EMAIL_USER_NOTIFICATIONS_DAILY_PERCENT:-90}"
+  EMAIL_DAILY_WINDOW_HOURS: "${EMAIL_DAILY_WINDOW_HOURS:-24}"
+  EMAIL_QUEUE_AUTOSTART: "${EMAIL_QUEUE_AUTOSTART:-true}"
+  EMAIL_QUEUE_POLL_INTERVAL_SECONDS: "${EMAIL_QUEUE_POLL_INTERVAL_SECONDS:-30}"
+  SMTP_POOL_MAX_CONNECTIONS: "${SMTP_POOL_MAX_CONNECTIONS:-5}"
+  SMTP_POOL_MAX_MESSAGES: "${SMTP_POOL_MAX_MESSAGES:-100}"
+
+# Âncora com os volumes compartilhados entre migrate e web.
+x-app-volumes: &app-volumes
+  - ./data:/app/data                      # banco SQLite
+  - ./data/uploads:/app/public/uploads    # uploads de usuários
+
+services:
+  # Roda a migração do banco antes de subir o app.
+  # Executa prisma/migrate.ts via tsx (só disponível na imagem tools).
+  # O serviço web só inicia após este concluir com sucesso (service_completed_successfully).
+  migrate:
+    image: registry.cptec.inpe.br/knowledge-tools:latest
+    environment:
+      <<: *app-environment
+    volumes: *app-volumes
+    restart: "no"
+
+  # Aplicação principal — Next.js em modo standalone.
+  # Exposta na porta configurada em APP_PORT (padrão 3000).
+  # O HAProxy na frente encaminha https://moodle.cptec.inpe.br/knowledge para esta porta.
+  web:
+    image: registry.cptec.inpe.br/knowledge:latest
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      <<: *app-environment
+    volumes: *app-volumes
+    restart: always
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "fetch('http://127.0.0.1:3000/knowledge/login').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
