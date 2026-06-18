@@ -111,6 +111,33 @@ Principais variaveis:
 
 O ambiente operacional usa SMTP Google (`smtp.gmail.com:587`). Em ambientes sem credenciais SMTP reais, o sistema continua funcionando, mas os envios ficam bloqueados ate a configuracao ser ajustada.
 
+## Build e publicacao da imagem
+
+As imagens Docker sao publicadas no registry interno do INPE:
+
+```text
+registry.cptec.inpe.br/knowledge        — app Next.js (producao)
+registry.cptec.inpe.br/knowledge-tools  — utilitarios (migracao de banco)
+```
+
+Para buildar e publicar, estando na rede do INPE:
+
+```bash
+npm run docker:publish
+```
+
+O script `scripts/docker-publish.sh` realiza as seguintes etapas:
+
+1. Builda ambas as imagens para `linux/amd64` via `docker buildx`, independente da arquitetura da maquina de build (funciona em Mac Intel, Mac Apple Silicon e Linux).
+2. Publica cada imagem com duas tags: `:latest` e `:<sha-curto-do-commit>`, para rastreabilidade e rollback.
+3. Faz o push direto para `registry.cptec.inpe.br`, que nao requer autenticacao na rede interna.
+
+Prerequisitos:
+
+- Docker com suporte a `buildx` (incluso no Docker Desktop e Docker Engine >= 23).
+- Acesso a rede interna do INPE.
+- Git com ao menos um commit no repositorio.
+
 ## Scripts
 
 - `npm run dev`: sobe o ambiente de desenvolvimento.
@@ -122,7 +149,8 @@ O ambiente operacional usa SMTP Google (`smtp.gmail.com:587`). Em ambientes sem 
 - `npm run prisma:generate`: regenera o Prisma Client.
 - `npm run studio`: abre o Prisma Studio.
 - `npm run emails:process`: processa manualmente a fila de e-mail.
-- `npm run docker:build`: cria a imagem Docker.
+- `npm run docker:build`: cria a imagem Docker localmente.
+- `npm run docker:publish`: builda e publica as imagens no registry do INPE.
 - `npm run docker:up`: sobe a aplicacao com Docker Compose.
 - `npm run docker:down`: derruba a aplicacao Docker.
 
