@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
+import { withBasePath } from "@/lib/base-path";
 
 type PublishCourseButtonProps = {
   courseId: string;
@@ -22,7 +23,7 @@ export function PublishCourseButton({ courseId }: PublishCourseButtonProps) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/courses/${courseId}/publish`, {
+      const response = await fetch(withBasePath(`/api/courses/${courseId}/publish`), {
         method: "POST",
       });
 

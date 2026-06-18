@@ -1,13 +1,15 @@
 "use client";
 
-import { Heart, MessageSquareText, Send, Star } from "lucide-react";
+import { Heart, LockKeyhole, MessageSquareText, Send, Star, UserPlus } from "lucide-react";
 import { startTransition, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { withBasePath } from "@/lib/base-path";
 
 type CourseEngagementPanelProps = {
   courseId: string;
@@ -17,6 +19,7 @@ type CourseEngagementPanelProps = {
     rating: number;
     body: string | null;
   } | null;
+  isAuthenticated: boolean;
 };
 
 export function CourseEngagementPanel({
@@ -24,6 +27,7 @@ export function CourseEngagementPanel({
   initialLiked,
   initialLikes,
   initialReview,
+  isAuthenticated,
 }: CourseEngagementPanelProps) {
   const router = useRouter();
   const { messages } = useUiSettings();
@@ -42,7 +46,7 @@ export function CourseEngagementPanel({
     setFeedback(null);
 
     try {
-      const response = await fetch(`/api/courses/${courseId}/like`, {
+      const response = await fetch(withBasePath(`/api/courses/${courseId}/like`), {
         method: "POST",
       });
 
@@ -74,7 +78,7 @@ export function CourseEngagementPanel({
     setFeedback(null);
 
     try {
-      const response = await fetch(`/api/courses/${courseId}/reviews`, {
+      const response = await fetch(withBasePath(`/api/courses/${courseId}/reviews`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +113,7 @@ export function CourseEngagementPanel({
     setFeedback(null);
 
     try {
-      const response = await fetch(`/api/courses/${courseId}/comments`, {
+      const response = await fetch(withBasePath(`/api/courses/${courseId}/comments`), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -137,6 +141,45 @@ export function CourseEngagementPanel({
       return;
     }
     setPendingComment(false);
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="lg:col-span-2">
+        <CardContent className="grid gap-6 p-6 sm:grid-cols-[0.8fr_1.2fr] sm:p-8">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-200">
+            <LockKeyhole className="h-7 w-7" />
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+                {messages.course.memberInteraction}
+              </p>
+              <h2 className="font-heading text-3xl text-zinc-950 dark:text-zinc-100">
+                {messages.course.signInToInteractTitle}
+              </h2>
+              <p className="max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                {messages.course.signInToInteractDescription}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild>
+                <Link href="/login">
+                  <LockKeyhole className="h-4 w-4" />
+                  {messages.auth.signInButton}
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/register">
+                  <UserPlus className="h-4 w-4" />
+                  {messages.auth.createAccount}
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

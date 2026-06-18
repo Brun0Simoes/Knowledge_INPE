@@ -11,6 +11,7 @@ import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { withBasePath } from "@/lib/base-path";
 import {
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
@@ -55,7 +56,7 @@ export function PasswordResetForm() {
     setCompleted(false);
 
     try {
-      const response = await fetch("/api/auth/password-reset/request", {
+      const response = await fetch(withBasePath("/api/auth/password-reset/request"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,7 +88,7 @@ export function PasswordResetForm() {
     setNotice(null);
 
     try {
-      const response = await fetch("/api/auth/password-reset/confirm", {
+      const response = await fetch(withBasePath("/api/auth/password-reset/confirm"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

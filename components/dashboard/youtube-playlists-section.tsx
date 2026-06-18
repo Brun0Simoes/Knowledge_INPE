@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
+import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 import type { YoutubePlaylist, YoutubePlaylistsResult } from "@/lib/youtube-playlists";
 
@@ -31,7 +32,7 @@ export function YoutubePlaylistsSection({ initialData }: YoutubePlaylistsSection
     setIsRefreshing(true);
 
     try {
-      const response = await fetch("/api/youtube/playlists", {
+      const response = await fetch(withBasePath("/api/youtube/playlists"), {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });

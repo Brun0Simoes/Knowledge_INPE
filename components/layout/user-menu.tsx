@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { withBasePath } from "@/lib/base-path";
 import { getClientRedirectUrl } from "@/lib/utils";
 
 type UserMenuProps = {
@@ -67,8 +68,9 @@ export function UserMenu({
         <DropdownMenuItem
           onSelect={async (event) => {
             event.preventDefault();
-            const result = await signOut({ callbackUrl: "/login", redirect: false });
-            window.location.href = getClientRedirectUrl(result?.url, "/login");
+            const signOutCallbackUrl = withBasePath("/login");
+            const result = await signOut({ callbackUrl: signOutCallbackUrl, redirect: false });
+            window.location.href = getClientRedirectUrl(result?.url, signOutCallbackUrl);
           }}
         >
           <LogOut className="mr-2 h-4 w-4 text-rose-600" />

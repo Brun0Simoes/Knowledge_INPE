@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
+import { withBasePath } from "@/lib/base-path";
 
 const deleteCourseLabels = {
   "pt-BR": {
@@ -62,7 +63,7 @@ export function DeleteCourseButton({
 
     setPending(true);
 
-    const response = await fetch(`/api/courses/${courseId}`, {
+    const response = await fetch(withBasePath(`/api/courses/${courseId}`), {
       method: "DELETE",
     });
 

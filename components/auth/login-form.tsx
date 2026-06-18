@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Label } from "@/components/ui/label";
+import { withBasePath } from "@/lib/base-path";
 import { loginSchema } from "@/lib/schemas/auth";
 import { getClientRedirectUrl, getSafeCallbackUrl } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ type LoginFormProps = {
 
 export function LoginForm({ callbackUrl }: LoginFormProps) {
   const safeCallbackUrl = getSafeCallbackUrl(callbackUrl);
+  const signInCallbackUrl = withBasePath(safeCallbackUrl);
   const { messages } = useUiSettings();
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +43,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
       try {
         const result = await signIn("credentials", {
           ...values,
-          callbackUrl: safeCallbackUrl,
+          callbackUrl: signInCallbackUrl,
           redirect: false,
         });
 
@@ -50,7 +52,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
           return;
         }
 
-        window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
+        window.location.href = getClientRedirectUrl(result?.url, signInCallbackUrl);
       } catch {
         setError(messages.auth.invalidCredentials);
       }

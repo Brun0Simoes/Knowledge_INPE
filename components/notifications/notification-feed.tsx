@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { withBasePath } from "@/lib/base-path";
 import { cn, formatRelativeDate } from "@/lib/utils";
 
 export type NotificationFeedItem = {
@@ -49,7 +50,7 @@ export function NotificationFeed({
     setError(null);
 
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(withBasePath(`/api/notifications/${id}`), {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +77,7 @@ export function NotificationFeed({
     setError(null);
 
     try {
-      const response = await fetch("/api/notifications/mark-all-read", {
+      const response = await fetch(withBasePath("/api/notifications/mark-all-read"), {
         method: "POST",
       });
 

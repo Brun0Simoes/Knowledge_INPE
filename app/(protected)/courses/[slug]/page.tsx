@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { summarizeCatalog, summarizeCourse } from "@/lib/analytics";
-import { requirePageUser } from "@/lib/access";
+import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
@@ -25,13 +25,14 @@ type PageProps = {
 export default async function CourseDetailPage({ params }: PageProps) {
   const language = await getServerLanguage();
   const messages = getMessages(language);
-  const user = await requirePageUser();
+  const session = await getServerAuthSession();
+  const user = session?.user ?? null;
   const { slug } = await params;
 
   const course = await prisma.course.findFirst({
     where: {
       slug,
-      ...(user.role === "ADMIN" ? {} : { status: CourseStatus.PUBLISHED }),
+      ...(user?.role === "ADMIN" ? {} : { status: CourseStatus.PUBLISHED }),
     },
     include: {
       author: {
@@ -110,8 +111,10 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   const summary = summarizeCourse(course);
   const relatedSummary = summarizeCatalog(relatedCourses);
-  const initialReview = course.reviews.find((review) => review.userId === user.id) ?? null;
-  const initialLiked = course.likes.some((like) => like.userId === user.id);
+  const initialReview = user?.id
+    ? (course.reviews.find((review) => review.userId === user.id) ?? null)
+    : null;
+  const initialLiked = user?.id ? course.likes.some((like) => like.userId === user.id) : false;
   const scheduleLabel = course.startsAt
     ? formatDateTimeRange(course.startsAt, course.endsAt, language)
     : course.publishedAt
@@ -121,7 +124,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <RecordCourseView courseId={course.id} />
+      <RecordCourseView courseId={course.id} enabled={Boolean(user?.id)} />
 
       <section className="overflow-hidden rounded-[36px] border border-white/60 bg-white/90 shadow-[0_32px_120px_-52px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-[#14263a]/88">
         <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
@@ -207,7 +210,11 @@ export default async function CourseDetailPage({ params }: PageProps) {
               </div>
             </div>
 
-            <CourseVisitButton courseId={course.id} courseUrl={course.externalUrl} />
+            <CourseVisitButton
+              canTrack={Boolean(user?.id)}
+              courseId={course.id}
+              courseUrl={course.externalUrl}
+            />
           </div>
         </div>
       </section>
@@ -252,6 +259,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           initialLiked={initialLiked}
           initialLikes={summary.metrics.likes}
           initialReview={initialReview}
+          isAuthenticated={Boolean(user?.id)}
         />
       </section>
 

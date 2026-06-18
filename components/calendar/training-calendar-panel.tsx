@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { withBasePath } from "@/lib/base-path";
 import {
   CALENDAR_TIME_ZONE,
   filterCalendarEvents,
@@ -253,7 +254,7 @@ export function TrainingCalendarPanel({
       }
 
       try {
-        const response = await fetch("/api/calendar/events", {
+        const response = await fetch(withBasePath("/api/calendar/events"), {
           cache: "no-store",
         });
 
@@ -361,7 +362,7 @@ export function TrainingCalendarPanel({
 
   const selectedEvents = eventsByDay.get(selectedDay) ?? [];
   const selectedDate = new Date(`${selectedDay}T12:00:00Z`);
-  const exportHref = `/api/calendar/export?month=${currentMonthKey}&source=${sourceFilter}&format=${formatFilter}`;
+  const exportHref = withBasePath(`/api/calendar/export?month=${currentMonthKey}&source=${sourceFilter}&format=${formatFilter}`);
   const lastUpdatedLabel = lastUpdatedAt ? formatRelativeDate(new Date(lastUpdatedAt), language) : null;
 
   function syncSelectedDay(

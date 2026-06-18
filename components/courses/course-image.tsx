@@ -1,5 +1,6 @@
 import Image, { type ImageProps } from "next/image";
 
+import { withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @next/next/no-img-element -- External course images must not be server-fetched by the Next optimizer. */
@@ -43,7 +44,7 @@ export function CourseImage({ src, alt, className, fill, sizes, priority, ...pro
       fill={fill}
       priority={priority}
       sizes={sizes}
-      src={src}
+      src={withBasePath(src)}
       {...props}
     />
   );

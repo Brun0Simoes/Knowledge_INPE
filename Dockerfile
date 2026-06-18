@@ -25,7 +25,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV DATABASE_URL=file:./data/knowledge.db
-ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXTAUTH_URL=http://localhost:3000/knowledge
 
 CMD ["npm", "run", "prisma:migrate"]
 
@@ -35,7 +35,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV DATABASE_URL=file:./prisma/dev.db
-ENV NEXTAUTH_URL=http://localhost:3000
+ENV NEXTAUTH_URL=http://localhost:3000/knowledge
 
 RUN npm run build
 

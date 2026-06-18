@@ -5,6 +5,7 @@ import { enUS, es, ptBR } from "date-fns/locale";
 import slugify from "slugify";
 import { twMerge } from "tailwind-merge";
 
+import { withBasePath } from "@/lib/base-path";
 import { FALLBACK_COURSE_IMAGE } from "@/lib/constants";
 import { DEFAULT_LANGUAGE, type Language } from "@/lib/ui-settings";
 
@@ -160,14 +161,14 @@ export function getSafeCallbackUrl(value?: string | null) {
 }
 
 export function getClientRedirectUrl(value?: string | null, fallback = "/dashboard") {
-  const safeFallback = getSafeCallbackUrl(fallback);
+  const safeFallback = withBasePath(getSafeCallbackUrl(fallback));
 
   if (!value) {
     return safeFallback;
   }
 
   if (value.startsWith("/")) {
-    return getSafeCallbackUrl(value);
+    return withBasePath(getSafeCallbackUrl(value));
   }
 
   if (typeof window === "undefined") {
@@ -181,7 +182,7 @@ export function getClientRedirectUrl(value?: string | null, fallback = "/dashboa
       return safeFallback;
     }
 
-    return getSafeCallbackUrl(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    return withBasePath(getSafeCallbackUrl(`${parsed.pathname}${parsed.search}${parsed.hash}`));
   } catch {
     return safeFallback;
   }

@@ -8,7 +8,7 @@ import { YoutubePlaylistsSection } from "@/components/dashboard/youtube-playlist
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { summarizeCatalog, summarizeCourse } from "@/lib/analytics";
-import { requirePageUser } from "@/lib/access";
+import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
@@ -18,35 +18,38 @@ import { fetchYoutubePlaylists } from "@/lib/youtube-playlists";
 export default async function DashboardPage() {
   const language = await getServerLanguage();
   const messages = getMessages(language);
-  const user = await requirePageUser();
-  const [courses, youtubePlaylists] = await Promise.all([
-    prisma.course.findMany({
-      where: {
-        status: CourseStatus.PUBLISHED,
-      },
-      orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
-      include: {
-        images: {
-          orderBy: {
-            sortOrder: "asc",
-          },
-        },
-        likes: {
-          select: { userId: true },
-        },
-        reviews: {
-          select: { rating: true },
-        },
-        comments: {
-          select: { id: true },
-        },
-        events: {
-          select: { type: true, createdAt: true },
+  const sessionPromise = getServerAuthSession();
+  const coursesPromise = prisma.course.findMany({
+    where: {
+      status: CourseStatus.PUBLISHED,
+    },
+    orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
+    include: {
+      images: {
+        orderBy: {
+          sortOrder: "asc",
         },
       },
-    }),
+      likes: {
+        select: { userId: true },
+      },
+      reviews: {
+        select: { rating: true },
+      },
+      comments: {
+        select: { id: true },
+      },
+      events: {
+        select: { type: true, createdAt: true },
+      },
+    },
+  });
+  const [session, courses, youtubePlaylists] = await Promise.all([
+    sessionPromise,
+    coursesPromise,
     fetchYoutubePlaylists({ limit: 12 }),
   ]);
+  const user = session?.user ?? null;
 
   const summary = summarizeCatalog(courses);
   const featuredCourse = courses.find((course) => course.isFeatured);
@@ -74,7 +77,7 @@ export default async function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {user.role === "ADMIN" ? (
+              {user?.role === "ADMIN" ? (
                 <Button asChild variant="secondary">
                   <Link href="/admin/courses/new">{messages.dashboard.newCourse}</Link>
                 </Button>

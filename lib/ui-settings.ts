@@ -223,6 +223,10 @@ const dictionaries = {
       moreCourses: "Mais cursos",
       noRelatedCourses: "Ainda nao existem cursos relacionados publicados.",
       continueInMoodle: "Continuar no Moodle",
+      memberInteraction: "Interacao de membros",
+      signInToInteractTitle: "Entre para reagir, avaliar e comentar.",
+      signInToInteractDescription:
+        "A leitura e os links ficam abertos para visitantes. Curtidas, avaliacoes e comentarios exigem login ou cadastro.",
     },
     courseForm: {
       createTitle: "Dados do curso",
@@ -455,6 +459,10 @@ const dictionaries = {
       moreCourses: "More courses",
       noRelatedCourses: "There are no related published courses yet.",
       continueInMoodle: "Continue in Moodle",
+      memberInteraction: "Member interaction",
+      signInToInteractTitle: "Sign in to react, rate and comment.",
+      signInToInteractDescription:
+        "Reading and links stay open to visitors. Likes, reviews and comments require sign-in or registration.",
     },
     courseForm: {
       createTitle: "Course details",
@@ -687,6 +695,10 @@ const dictionaries = {
       moreCourses: "Más cursos",
       noRelatedCourses: "Todavía no existen cursos relacionados publicados.",
       continueInMoodle: "Continuar en Moodle",
+      memberInteraction: "Interaccion de miembros",
+      signInToInteractTitle: "Inicia sesion para reaccionar, valorar y comentar.",
+      signInToInteractDescription:
+        "La lectura y los enlaces quedan abiertos para visitantes. Me gusta, valoraciones y comentarios requieren login o registro.",
     },
     courseForm: {
       createTitle: "Datos del curso",

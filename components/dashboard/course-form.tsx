@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { withBasePath } from "@/lib/base-path";
 import { MAX_IMAGE_UPLOADS } from "@/lib/constants";
 import {
   clearCourseDraftStorage,
@@ -319,7 +320,7 @@ export function CourseForm({ mode, course }: CourseFormProps) {
     setPending(true);
     setError(null);
 
-    const endpoint = mode === "create" ? "/api/courses" : `/api/courses/${course?.id}`;
+    const endpoint = withBasePath(mode === "create" ? "/api/courses" : `/api/courses/${course?.id}`);
     const method = mode === "create" ? "POST" : "PATCH";
     const payload = new FormData();
 

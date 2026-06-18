@@ -4,24 +4,28 @@ import { ExternalLink } from "lucide-react";
 
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Button } from "@/components/ui/button";
+import { withBasePath } from "@/lib/base-path";
 
 type CourseVisitButtonProps = {
   courseId: string;
   courseUrl: string;
+  canTrack?: boolean;
 };
 
-export function CourseVisitButton({ courseId, courseUrl }: CourseVisitButtonProps) {
+export function CourseVisitButton({ canTrack = true, courseId, courseUrl }: CourseVisitButtonProps) {
   const { messages } = useUiSettings();
 
   async function handleClick() {
-    await fetch(`/api/courses/${courseId}/events`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ type: "CLICK_EXTERNAL" }),
-      keepalive: true,
-    }).catch(() => undefined);
+    if (canTrack) {
+      await fetch(withBasePath(`/api/courses/${courseId}/events`), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type: "CLICK_EXTERNAL" }),
+        keepalive: true,
+      }).catch(() => undefined);
+    }
 
     window.open(courseUrl, "_blank", "noopener,noreferrer");
   }

@@ -3,7 +3,7 @@ x-app-environment: &app-environment
   PORT: "3000"
   HOSTNAME: "0.0.0.0"
   DATABASE_URL: "${DOCKER_DATABASE_URL:-file:./data/knowledge.db}"
-  NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000}"
+  NEXTAUTH_URL: "${NEXTAUTH_URL:-http://localhost:3000/knowledge}"
   NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?Defina NEXTAUTH_SECRET com um segredo forte antes de iniciar o Docker}"
   YOUTUBE_API_KEY: "${YOUTUBE_API_KEY:-}"
   YOUTUBE_CHANNEL_ID: "${YOUTUBE_CHANNEL_ID:-UCVdve-LRCP08M3gwXTPNmpg}"
@@ -51,7 +51,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - node -e "fetch('http://127.0.0.1:3000/login').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        - node -e "fetch('http://127.0.0.1:3000/knowledge/login').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
       interval: 30s
       timeout: 10s
       retries: 5

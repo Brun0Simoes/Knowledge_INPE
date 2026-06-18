@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUiSettings } from "@/components/providers/ui-settings-provider";
 import { Label } from "@/components/ui/label";
+import { withBasePath } from "@/lib/base-path";
 import { registerSchema } from "@/lib/schemas/auth";
 import { getClientRedirectUrl, getSafeCallbackUrl } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ type RegisterFormProps = {
 
 export function RegisterForm({ callbackUrl }: RegisterFormProps) {
   const safeCallbackUrl = getSafeCallbackUrl(callbackUrl);
+  const signInCallbackUrl = withBasePath(safeCallbackUrl);
   const { messages } = useUiSettings();
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +43,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
 
     startTransition(async () => {
       try {
-        const response = await fetch("/api/auth/register", {
+        const response = await fetch(withBasePath("/api/auth/register"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -58,7 +60,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
         const result = await signIn("credentials", {
           email: values.email,
           password: values.password,
-          callbackUrl: safeCallbackUrl,
+          callbackUrl: signInCallbackUrl,
           redirect: false,
         });
 
@@ -67,7 +69,7 @@ export function RegisterForm({ callbackUrl }: RegisterFormProps) {
           return;
         }
 
-        window.location.href = getClientRedirectUrl(result?.url, safeCallbackUrl);
+        window.location.href = getClientRedirectUrl(result?.url, signInCallbackUrl);
       } catch {
         setError(messages.auth.registerError);
       }

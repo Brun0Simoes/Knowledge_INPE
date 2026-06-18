@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 type SidebarNavProps = {
   isAdmin: boolean;
+  isAuthenticated?: boolean;
 };
 
 type NavItem = {
@@ -44,10 +45,13 @@ const adminItems: NavItem[] = [
   },
 ];
 
-export function SidebarNav({ isAdmin }: SidebarNavProps) {
+export function SidebarNav({ isAdmin, isAuthenticated = true }: SidebarNavProps) {
   const pathname = usePathname();
   const { messages } = useUiSettings();
-  const items = isAdmin ? [...baseItems, ...adminItems] : baseItems;
+  const visibleBaseItems = isAuthenticated
+    ? baseItems
+    : baseItems.filter((item) => item.href === "/dashboard");
+  const items = isAdmin ? [...visibleBaseItems, ...adminItems] : visibleBaseItems;
 
   return (
     <nav className="flex flex-wrap gap-2">
