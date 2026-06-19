@@ -11,30 +11,11 @@ type CourseImageProps = Omit<ImageProps, "src"> & {
 
 export function CourseImage({ src, alt, className, fill, sizes, priority, ...props }: CourseImageProps) {
   if (isExternalHttpsUrl(src)) {
-    if (fill) {
-      return (
-        <img
-          alt={alt}
-          className={cn("absolute inset-0 h-full w-full", className)}
-          decoding="async"
-          loading={priority ? "eager" : "lazy"}
-          referrerPolicy="no-referrer"
-          sizes={typeof sizes === "string" ? sizes : undefined}
-          src={src}
-        />
-      );
-    }
+    return renderRawCourseImage({ src, alt, className, fill, priority, sizes, referrerPolicy: "no-referrer" });
+  }
 
-    return (
-      <img
-        alt={alt}
-        className={className}
-        decoding="async"
-        loading={priority ? "eager" : "lazy"}
-        referrerPolicy="no-referrer"
-        src={src}
-      />
-    );
+  if (isLocalUploadUrl(src)) {
+    return renderRawCourseImage({ src: withBasePath(src), alt, className, fill, priority, sizes });
   }
 
   return (
@@ -44,10 +25,57 @@ export function CourseImage({ src, alt, className, fill, sizes, priority, ...pro
       fill={fill}
       priority={priority}
       sizes={sizes}
-      src={withBasePath(src)}
+      src={src}
       {...props}
     />
   );
+}
+
+function renderRawCourseImage({
+  src,
+  alt,
+  className,
+  fill,
+  priority,
+  referrerPolicy,
+  sizes,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  fill?: boolean;
+  priority?: boolean;
+  referrerPolicy?: "no-referrer";
+  sizes?: ImageProps["sizes"];
+}) {
+  if (fill) {
+    return (
+      <img
+        alt={alt}
+        className={cn("absolute inset-0 h-full w-full", className)}
+        decoding="async"
+        loading={priority ? "eager" : "lazy"}
+        referrerPolicy={referrerPolicy}
+        sizes={typeof sizes === "string" ? sizes : undefined}
+        src={src}
+      />
+    );
+  }
+
+  return (
+    <img
+      alt={alt}
+      className={className}
+      decoding="async"
+      loading={priority ? "eager" : "lazy"}
+      referrerPolicy={referrerPolicy}
+      src={src}
+    />
+  );
+}
+
+function isLocalUploadUrl(value: string) {
+  return value.startsWith("/uploads/");
 }
 
 function isExternalHttpsUrl(value: string) {
