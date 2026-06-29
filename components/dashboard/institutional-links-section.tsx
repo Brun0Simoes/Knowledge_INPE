@@ -1,4 +1,4 @@
-import { ExternalLink, Satellite } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 import { withBasePath } from "@/lib/base-path";
 
@@ -25,11 +25,11 @@ const institutionalLinks = [
     imageAlt: "VLab",
   },
   {
-    title: "Divisão de Satélites",
-    description: "Página institucional da Divisão de Satélites do CPTEC/INPE.",
+    title: "Interface DISSM",
+    description: "Divisão de Satélites e Sensores Meteorológicos do CPTEC/INPE.",
     href: "https://satelite.cptec.inpe.br/home/index.jsp",
-    imageSrc: withBasePath("/brand/logo-inpe.png"),
-    imageAlt: "INPE",
+    imageSrc: withBasePath("/brand/logo-dissm.png"),
+    imageAlt: "DISSM",
   },
 ];
 
@@ -66,11 +66,7 @@ export function InstitutionalLinksSection() {
                 />
               </span>
               <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition group-hover:border-teal-500 group-hover:text-teal-700 dark:border-white/10 dark:bg-[#0b1724] dark:text-zinc-200">
-                {item.title === "Divisão de Satélites" ? (
-                  <Satellite className="h-4 w-4" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
+                <ExternalLink className="h-4 w-4" />
               </span>
             </span>
 

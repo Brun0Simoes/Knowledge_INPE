@@ -63,7 +63,7 @@ export default async function DashboardPage() {
         className="grain-overlay relative overflow-hidden rounded-[40px] bg-[#13253a] px-6 py-8 text-white shadow-[0_44px_120px_-52px_rgba(15,23,42,0.7)] sm:px-8 sm:py-10"
         style={{ backgroundImage: "linear-gradient(135deg, #13253a 0%, #1d4058 55%, #c66b2f 100%)" }}
       >
-        <div className="relative z-10 grid gap-8 lg:grid-cols-[1.18fr_0.82fr] lg:items-end">
+        <div className="relative z-10 grid gap-8 lg:grid-cols-[1.18fr_0.82fr] lg:items-center">
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.38em] text-white/64">
