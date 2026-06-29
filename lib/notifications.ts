@@ -22,7 +22,7 @@ export async function createCoursePublicationNotification({
       data: {
         type: NotificationType.COURSE_PUBLISHED,
         title: "Novo curso publicado",
-        body: `${course.title} foi publicado na knowledge.`,
+        body: `${course.title} foi publicado no Laboratório Virtual.`,
         href: `/courses/${course.slug}`,
         courseId: course.id,
         createdById,

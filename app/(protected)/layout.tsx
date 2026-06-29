@@ -2,12 +2,12 @@ import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { InpeLogoMark } from "@/components/layout/inpe-logo-mark";
 import { NotificationInboxLink } from "@/components/layout/notification-inbox-link";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { UserMenu } from "@/components/layout/user-menu";
+import { VlabBrandLockup } from "@/components/layout/vlab-brand-lockup";
 import { getServerAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getMessages } from "@/lib/ui-settings";
@@ -46,9 +46,11 @@ export default async function ProtectedLayout({
           >
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
-                <Link className="inline-flex items-center gap-3 text-white" href="/dashboard">
-                  <InpeLogoMark className="h-14 w-14 text-white drop-shadow-[0_8px_18px_rgba(0,0,0,0.22)]" />
-                  <span className="font-heading text-2xl tracking-[0.24em]">knowledge</span>
+                <Link className="inline-flex flex-wrap items-center gap-4 text-white" href="/dashboard">
+                  <VlabBrandLockup logoClassName="h-12 sm:h-14" />
+                  <span className="font-heading text-xl tracking-[0.08em] sm:text-2xl">
+                    Laboratório Virtual
+                  </span>
                 </Link>
                 <p className="max-w-2xl text-sm leading-7 text-white/74">
                   {messages.layout.platformTagline}
@@ -79,7 +81,7 @@ export default async function ProtectedLayout({
                         asChild
                         size="sm"
                         variant="outline"
-                        className="border-white/80 bg-white px-4 text-[#102132] hover:border-white hover:bg-[#f6ead6] hover:text-[#102132]"
+                        className="border-white/80 !bg-white px-4 !text-zinc-950 hover:border-white hover:!bg-[#f6ead6] hover:!text-zinc-950"
                       >
                         <Link href="/register">{messages.auth.createAccount}</Link>
                       </Button>

@@ -16,8 +16,8 @@ const bodyFont = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "knowledge",
-  description: "Plataforma de cursos em ciencias espaciais com acesso direto ao Moodle.",
+  title: "Laboratório Virtual",
+  description: "Plataforma de cursos em meteorologia por satélite integrada ao Moodle.",
 };
 
 export default async function RootLayout({

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { TrainingCalendarSection } from "@/components/calendar/training-calendar-section";
 import { CourseCard } from "@/components/courses/course-card";
+import { InstitutionalLinksSection } from "@/components/dashboard/institutional-links-section";
 import { YoutubePlaylistsSection } from "@/components/dashboard/youtube-playlists-section";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,7 +67,7 @@ export default async function DashboardPage() {
           <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.38em] text-white/64">
-                knowledge
+                {messages.dashboard.heroEyebrow}
               </p>
               <h1 className="font-heading text-4xl leading-[0.95] sm:text-6xl">
                 {messages.dashboard.heroTitle}
@@ -85,18 +86,11 @@ export default async function DashboardPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.24em] text-white/62">
-              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-2">
-                Observacao da Terra
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-2">
-                Modelagem climatica
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-2">
-                Tempo espacial
-              </span>
-              <span className="rounded-full border border-white/12 bg-white/8 px-3 py-2">
-                Satelites operacionais
-              </span>
+              {messages.dashboard.heroTopics.map((topic) => (
+                <span key={topic} className="rounded-full border border-white/12 bg-white/8 px-3 py-2">
+                  {topic}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -124,72 +118,70 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <InstitutionalLinksSection />
+
       <YoutubePlaylistsSection initialData={youtubePlaylists} />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
-        <section className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-                {messages.dashboard.liveNow}
-              </p>
-              <h2 className="font-heading text-3xl text-zinc-950 dark:text-zinc-100">
-                {messages.dashboard.publishedCourses}
-              </h2>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
-                <Sparkles className="h-4 w-4 text-teal-700 dark:text-teal-200" />
-                {summary.totals.published} {messages.common.coursesAvailable}
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
-                <Heart className="h-4 w-4 text-teal-700 dark:text-teal-200" />
-                {formatCompactNumber(summary.totals.likes, language)} {messages.common.reactionsRegistered}
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
-                <Star className="h-4 w-4 text-teal-700 dark:text-teal-200" />
-                {formatRating(summary.totals.averageRating, language)} {messages.common.averageOverall}
-              </span>
-            </div>
+      <section className="space-y-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+              {messages.dashboard.liveNow}
+            </p>
+            <h2 className="font-heading text-3xl text-zinc-950 dark:text-zinc-100">
+              {messages.dashboard.publishedCourses}
+            </h2>
           </div>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
+              <Sparkles className="h-4 w-4 text-teal-700 dark:text-teal-200" />
+              {summary.totals.published} {messages.common.coursesAvailable}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
+              <Heart className="h-4 w-4 text-teal-700 dark:text-teal-200" />
+              {formatCompactNumber(summary.totals.likes, language)} {messages.common.reactionsRegistered}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm dark:bg-[#112437]">
+              <Star className="h-4 w-4 text-teal-700 dark:text-teal-200" />
+              {formatRating(summary.totals.averageRating, language)} {messages.common.averageOverall}
+            </span>
+          </div>
+        </div>
 
-          {summary.courses.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="font-heading text-2xl text-zinc-950 dark:text-zinc-100">
-                  {messages.dashboard.noPublishedTitle}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-                  {messages.dashboard.noPublishedDescription}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {gridCourses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={{
-                    slug: course.slug,
-                    title: course.title,
-                    summary: course.summary,
-                    primaryImage: course.primaryImage,
-                    metrics: {
-                      likes: course.metrics.likes,
-                      comments: course.metrics.comments,
-                      averageRating: course.metrics.averageRating,
-                    },
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        {summary.courses.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="font-heading text-2xl text-zinc-950 dark:text-zinc-100">
+                {messages.dashboard.noPublishedTitle}
+              </p>
+              <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                {messages.dashboard.noPublishedDescription}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2">
+            {gridCourses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={{
+                  slug: course.slug,
+                  title: course.title,
+                  summary: course.summary,
+                  primaryImage: course.primaryImage,
+                  metrics: {
+                    likes: course.metrics.likes,
+                    comments: course.metrics.comments,
+                    averageRating: course.metrics.averageRating,
+                  },
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
-        <aside className="xl:sticky xl:top-6">
-          <TrainingCalendarSection language={language} />
-        </aside>
-      </div>
+      <TrainingCalendarSection language={language} allowExport />
     </div>
   );
 }

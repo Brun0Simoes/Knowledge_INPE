@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-import { InpeLogoMark } from "@/components/layout/inpe-logo-mark";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { APP_NAME } from "@/lib/constants";
+import { VlabBrandLockup } from "@/components/layout/vlab-brand-lockup";
 import { getServerLanguage } from "@/lib/server-preferences";
 import { getMessages } from "@/lib/ui-settings";
 
@@ -17,9 +16,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <div className="auth-atmosphere grain-overlay min-h-screen overflow-hidden">
         <div className="mx-auto flex min-h-screen max-w-7xl flex-col justify-between px-6 py-8 lg:px-10">
           <header className="flex flex-col gap-4 text-white lg:flex-row lg:items-start lg:justify-between">
-            <Link className="inline-flex items-center gap-3" href="/dashboard">
-              <InpeLogoMark className="h-12 w-12 text-white drop-shadow-[0_8px_18px_rgba(0,0,0,0.22)]" />
-              <span className="font-heading text-xl tracking-[0.24em]">{APP_NAME}</span>
+            <Link className="inline-flex flex-wrap items-center gap-4" href="/dashboard">
+              <VlabBrandLockup logoClassName="h-11 sm:h-12" />
+              <span className="font-heading text-xl tracking-[0.08em]">Laboratório Virtual</span>
             </Link>
             <div className="flex flex-col gap-3 lg:items-end">
               <div className="flex flex-wrap gap-2">

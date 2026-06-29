@@ -1,4 +1,4 @@
-export const APP_NAME = "knowledge";
+export const APP_NAME = "Laboratório Virtual";
 export const FALLBACK_COURSE_IMAGE = "/seed/orbita.svg";
 export const PUBLIC_AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 export const MAX_IMAGE_UPLOADS = 5;

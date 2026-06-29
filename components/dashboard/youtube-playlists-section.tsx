@@ -88,7 +88,7 @@ export function YoutubePlaylistsSection({ initialData }: YoutubePlaylistsSection
           <div className="relative z-10 flex min-h-[320px] flex-col justify-between gap-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="max-w-2xl space-y-3">
-                <p className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.28em] text-teal-100/78">
+                <p className="inline-flex max-w-3xl items-center gap-2 text-xs uppercase leading-6 tracking-[0.12em] text-teal-100/78">
                   <Video className="h-4 w-4" />
                   {messages.dashboard.youtubeEyebrow}
                 </p>

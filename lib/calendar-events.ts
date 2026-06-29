@@ -101,11 +101,11 @@ async function getPlatformCalendarEvents(): Promise<CalendarEvent[]> {
       status: "Published",
       attendance: "Open",
       city: "Online",
-      host: "INPE / knowledge",
+      host: "INPE / VLab",
       url: `/courses/${course.slug}`,
       description: course.summary,
       languages: ["Portuguese"],
-      sourceName: "knowledge",
+      sourceName: "Laboratório Virtual",
       sourceFilters: ["PLATFORM", "INPE"],
     } satisfies CalendarEvent;
   });

@@ -1072,7 +1072,7 @@ function buildKnowledgeLogoSvg() {
       <circle cx="55" cy="48" r="21" fill="none" stroke="#2dd4bf" stroke-width="5"/>
       <path d="M38 49c21-17 44-18 68-3" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
       <circle cx="79" cy="35" r="5" fill="#fbbf24"/>
-      <text x="116" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#ffffff" letter-spacing="1.5">knowledge</text>
+      <text x="116" y="58" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="0.6">${APP_NAME}</text>
     </svg>
   `;
 }

@@ -38,7 +38,7 @@ type YoutubeThumbnailMap = Record<string, { url?: string; width?: number; height
 
 const YOUTUBE_CHANNEL_HANDLE = "VLabCoEBrasil";
 const DEFAULT_CHANNEL_ID = "UCVdve-LRCP08M3gwXTPNmpg";
-const CHANNEL_TITLE = "VLab CoE Brasil";
+const CHANNEL_TITLE = "Centro de Excelência VLab no Brasil";
 const CHANNEL_URL = `https://www.youtube.com/@${YOUTUBE_CHANNEL_HANDLE}`;
 const PLAYLISTS_URL = `${CHANNEL_URL}/playlists`;
 const DEFAULT_LIMIT = 10;

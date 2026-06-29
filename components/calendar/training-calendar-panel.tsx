@@ -39,9 +39,10 @@ const formatFilters: CalendarFormatFilter[] = ["ALL", "ONLINE", "ONSITE"];
 
 const calendarLabels = {
   "pt-BR": {
-    eyebrow: "Agenda orbital",
-    title: "Calendario internacional",
-    description: "Agenda combinada com eventos EUMETSAT e marcos publicados na knowledge.",
+    eyebrow: "Agenda",
+    title: "Calendário Internacional VLab",
+    description:
+      "Agenda combinada com eventos dos Centros de Excelência VLab, Operadores de Satélites e instituições parceiras.",
     sourceGroup: "Fonte",
     formatGroup: "Modalidade",
     sourceFilters: {
@@ -80,9 +81,10 @@ const calendarLabels = {
     lastUpdated: "Atualizado",
   },
   en: {
-    eyebrow: "Orbital agenda",
-    title: "International calendar",
-    description: "Combined agenda with EUMETSAT events and published milestones from knowledge.",
+    eyebrow: "Agenda",
+    title: "VLab International Calendar",
+    description:
+      "Combined agenda with events from VLab Centres of Excellence, Satellite Operators and partner institutions.",
     sourceGroup: "Source",
     formatGroup: "Format",
     sourceFilters: {
@@ -120,9 +122,10 @@ const calendarLabels = {
     lastUpdated: "Updated",
   },
   es: {
-    eyebrow: "Agenda orbital",
-    title: "Calendario internacional",
-    description: "Agenda combinada con eventos EUMETSAT y publicaciones de knowledge.",
+    eyebrow: "Agenda",
+    title: "Calendario Internacional VLab",
+    description:
+      "Agenda combinada con eventos de los Centros de Excelencia VLab, Operadores de Satélites e instituciones asociadas.",
     sourceGroup: "Fuente",
     formatGroup: "Modalidad",
     sourceFilters: {
@@ -484,7 +487,7 @@ export function TrainingCalendarPanel({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className="grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)] xl:items-start">
         <div className="rounded-[28px] border border-zinc-200 bg-white/85 p-4 shadow-sm dark:border-white/10 dark:bg-[#0f1d2b]">
           {loading ? (
             <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 text-center text-zinc-600 dark:text-zinc-300">

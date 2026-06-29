@@ -1,6 +1,6 @@
 import Image, { type ImageProps } from "next/image";
 
-import { withBasePath } from "@/lib/base-path";
+import { APP_BASE_PATH, withBasePath } from "@/lib/base-path";
 import { cn } from "@/lib/utils";
 
 /* eslint-disable @next/next/no-img-element -- External course images must not be server-fetched by the Next optimizer. */
@@ -14,8 +14,10 @@ export function CourseImage({ src, alt, className, fill, sizes, priority, ...pro
     return renderRawCourseImage({ src, alt, className, fill, priority, sizes, referrerPolicy: "no-referrer" });
   }
 
-  if (isLocalUploadUrl(src)) {
-    return renderRawCourseImage({ src: withBasePath(src), alt, className, fill, priority, sizes });
+  const localUploadSrc = getLocalUploadSrc(src);
+
+  if (localUploadSrc) {
+    return renderRawCourseImage({ src: localUploadSrc, alt, className, fill, priority, sizes });
   }
 
   return (
@@ -74,8 +76,16 @@ function renderRawCourseImage({
   );
 }
 
-function isLocalUploadUrl(value: string) {
-  return value.startsWith("/uploads/");
+function getLocalUploadSrc(value: string) {
+  if (value.startsWith("/uploads/")) {
+    return withBasePath(value);
+  }
+
+  if (APP_BASE_PATH && value.startsWith(`${APP_BASE_PATH}/uploads/`)) {
+    return value;
+  }
+
+  return null;
 }
 
 function isExternalHttpsUrl(value: string) {
