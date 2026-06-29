@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Knowledge INPE | Visualização Front-end</title>
+    <meta
+      name="description"
+      content="Visualização estática das principais telas e dashboards da plataforma Knowledge INPE para GitHub Pages."
+    />
+    <link rel="stylesheet" href="assets/github-pages-preview.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">
+            <img src="assets/logo-inpe.png" alt="INPE" />
+          </span>
+          <div>
+            <p class="brand-title">knowledge</p>
+            <p class="brand-subtitle">Plataforma de cursos em meteorologia por satélite.</p>
+          </div>
+        </div>
+        <nav class="topbar-actions" aria-label="Ações de navegação">
+          <button class="ghost-pill" type="button" data-scroll-to="#dashboards">Dashboards</button>
+          <button class="ghost-pill" type="button" data-scroll-to="#interfaces">Interfaces</button>
+          <a class="nav-pill" href="https://moodle.cptec.inpe.br/knowledge">Aplicação real</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-grid">
+            <div>
+              <p class="eyebrow">Laboratório Virtual da OMM</p>
+              <h1 id="hero-title">Cursos em meteorologia por satélites.</h1>
+              <p class="hero-copy">
+                Missão do VLab: Apoiar a proteção da vida, do patrimônio e o desenvolvimento econômico por meio do
+                aprimoramento dos serviços meteorológicos, climáticos, hidrológicos e de outras áreas ambientais
+                correlatas, capacitando os Membros da OMM a utilizar dados de satélite em seus serviços e atividades
+                científicas.
+              </p>
+              <div class="topic-list" aria-label="Temas de curso">
+                <span>GOES-R</span>
+                <span>Nowcasting</span>
+                <span>Composições RGB</span>
+                <span>Oceanografia</span>
+                <span>Radiação</span>
+                <span>Webinars</span>
+              </div>
+            </div>
+            <article class="spotlight">
+              <p class="eyebrow">Em destaque agora</p>
+              <h2>Minicurso: Processamento e visualização de dados de Queimadas 2026</h2>
+              <p>
+                Card de destaque centralizado no hero, com proporção preservada e leitura consistente com a dashboard
+                pública.
+              </p>
+              <div class="metrics-row">
+                <span>0 curtidas</span>
+                <span>0 comentários</span>
+                <span>0,0 de nota média</span>
+              </div>
+              <span class="primary-button">Ler página do curso</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="interfaces">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow" style="color: #758092">Acesso institucional</p>
+              <h2 class="section-title">Plataformas relacionadas</h2>
+            </div>
+            <p class="section-copy">
+              Cards de navegação pública para os ambientes que apoiam a operação e divulgação dos cursos.
+            </p>
+          </div>
+          <div class="related-grid">
+            <article class="preview-card">
+              <img src="assets/logo-moodle.png" alt="Moodle" />
+              <div>
+                <h3>Interface Moodle</h3>
+                <p>Ambiente principal de cursos e atividades educacionais.</p>
+              </div>
+            </article>
+            <article class="preview-card">
+              <img src="assets/logo-inpe.png" alt="DSAT" />
+              <div>
+                <h3>Interface DSAT</h3>
+                <p>Produtos e visualizações da Divisão de Satélites.</p>
+              </div>
+            </article>
+            <article class="preview-card">
+              <img src="assets/logo-vlab.png" alt="VLab" />
+              <div>
+                <h3>VLab Internacional</h3>
+                <p>Página internacional do Laboratório Virtual da OMM.</p>
+              </div>
+            </article>
+            <article class="preview-card">
+              <img src="assets/logo-dissm.png" alt="DISSM" />
+              <div>
+                <h3>Interface DISSM</h3>
+                <p>Divisão de Satélites e Sensores Meteorológicos do CPTEC/INPE.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="dashboards">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow" style="color: #758092">Visualização GitHub Pages</p>
+              <h2 class="section-title">Dashboards e fluxos principais</h2>
+            </div>
+            <p class="section-copy">
+              Esta página é uma prévia estática: não possui autenticação, banco de dados, APIs ou envio de e-mail.
+            </p>
+          </div>
+
+          <div class="preview-tabs" role="tablist" aria-label="Prévia das telas">
+            <button class="is-active" type="button" role="tab" aria-selected="true" data-preview-tab="public">
+              Dashboard pública
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-preview-tab="user">
+              Usuário
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-preview-tab="admin">
+              Administração
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-preview-tab="analytics">
+              Analytics
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-preview-tab="auth">
+              Login e cadastro
+            </button>
+          </div>
+
+          <section class="preview-pane is-active" data-preview-pane="public">
+            <div class="mock-window">
+              <div class="mock-bar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="address">moodle.cptec.inpe.br/knowledge</span>
+              </div>
+              <div class="mock-content">
+                <div class="app-header">
+                  <div class="brand">
+                    <span class="brand-mark"><img src="assets/logo-inpe.png" alt="" /></span>
+                    <div>
+                      <p class="brand-title" style="font-size: 1.6rem">knowledge</p>
+                      <p class="brand-subtitle">Plataforma de cursos em meteorologia por satélite.</p>
+                    </div>
+                  </div>
+                  <div class="app-nav">
+                    <span>Cursos</span>
+                    <span>Português</span>
+                    <span>Entrar</span>
+                    <span>Criar cadastro</span>
+                  </div>
+                </div>
+                <div class="mock-grid">
+                  <div class="course-grid" style="grid-template-columns: 1fr">
+                    <article class="course-card">
+                      <div class="course-cover">
+                        <small>Curso</small>
+                        <strong>Minicurso: Processamento e visualização de dados de Queimadas 2026</strong>
+                      </div>
+                      <div class="course-body">
+                        <p>Curso publicado no catálogo, visível para visitantes e aberto para consulta.</p>
+                        <div class="course-actions">
+                          <span class="chip">0 curtidas</span>
+                          <span class="chip">0 comentários</span>
+                          <span class="chip">0,0 média geral</span>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <aside class="calendar-card">
+                    <p class="eyebrow" style="color: #758092">Agenda</p>
+                    <h3 class="mini-title">Julho de 2026</h3>
+                    <div class="calendar-grid" aria-label="Calendário estático">
+                      <span class="day">1</span><span class="day">2</span><span class="day">3</span>
+                      <span class="day">4</span><span class="day">5</span><span class="day">6</span>
+                      <span class="day">7</span><span class="day">8</span><span class="day">9</span>
+                      <span class="day">10</span><span class="day">11</span><span class="day">12</span>
+                      <span class="day">13</span><span class="day">14</span><span class="day">15</span>
+                      <span class="day">16</span><span class="day">17</span><span class="day">18</span>
+                      <span class="day">19</span><span class="day">20</span><span class="day">21</span>
+                      <span class="day">22</span><span class="day">23</span><span class="day">24</span>
+                      <span class="day">25</span><span class="day">26</span><span class="day">27</span>
+                      <span class="day">28</span><span class="day has-event">29</span>
+                      <span class="day has-event">30</span><span class="day has-event">31</span>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="preview-pane" data-preview-pane="user" hidden>
+            <div class="mock-window">
+              <div class="mock-bar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="address">/knowledge/dashboard</span>
+              </div>
+              <div class="mock-content">
+                <div class="metric-grid">
+                  <article class="metric-card"><p>Cursos disponíveis</p><strong>1</strong></article>
+                  <article class="metric-card"><p>Reações registradas</p><strong>0</strong></article>
+                  <article class="metric-card"><p>Média geral</p><strong>0,0</strong></article>
+                  <article class="metric-card"><p>Alertas recentes</p><strong>3</strong></article>
+                </div>
+                <div class="mock-grid">
+                  <article class="panel-card">
+                    <p class="eyebrow" style="color: #758092">Seu inbox</p>
+                    <h3 class="mini-title">Notificações de cursos e agenda</h3>
+                    <p>Área autenticada para acompanhar novos cursos, atualizações e mensagens da plataforma.</p>
+                  </article>
+                  <article class="panel-card">
+                    <p class="eyebrow" style="color: #758092">Interações</p>
+                    <h3 class="mini-title">Curtir, comentar e avaliar</h3>
+                    <p>Visitantes podem ler; interações exigem login ou cadastro.</p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="preview-pane" data-preview-pane="admin" hidden>
+            <div class="mock-window">
+              <div class="mock-bar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="address">/knowledge/admin/courses</span>
+              </div>
+              <div class="mock-content">
+                <div class="section-head">
+                  <div>
+                    <p class="eyebrow" style="color: #758092">Gestão editorial</p>
+                    <h3 class="section-title">Cursos</h3>
+                  </div>
+                  <span class="primary-button">Novo curso</span>
+                </div>
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Curso</th>
+                      <th>Status</th>
+                      <th>Período</th>
+                      <th>Interações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Minicurso de Queimadas 2026</td>
+                      <td><span class="status">Publicado</span></td>
+                      <td>29 a 31 jul. 2026</td>
+                      <td>0</td>
+                    </tr>
+                    <tr>
+                      <td>Treinamento de satélites</td>
+                      <td><span class="status">Rascunho</span></td>
+                      <td>A definir</td>
+                      <td>0</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="preview-pane" data-preview-pane="analytics" hidden>
+            <div class="mock-window">
+              <div class="mock-bar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="address">/knowledge/admin/analytics</span>
+              </div>
+              <div class="mock-content">
+                <div class="metric-grid">
+                  <article class="metric-card"><p>Publicações</p><strong>1</strong><div class="bar"><span style="width: 65%"></span></div></article>
+                  <article class="metric-card"><p>Comentários</p><strong>0</strong><div class="bar"><span style="width: 12%"></span></div></article>
+                  <article class="metric-card"><p>Avaliações</p><strong>0</strong><div class="bar"><span style="width: 18%"></span></div></article>
+                  <article class="metric-card"><p>Envios de e-mail</p><strong>Fila</strong><div class="bar"><span style="width: 78%"></span></div></article>
+                </div>
+                <div class="mock-grid">
+                  <article class="panel-card">
+                    <p class="eyebrow" style="color: #758092">Agenda integrada</p>
+                    <h3 class="mini-title">Cursos internos e eventos EUMETSAT</h3>
+                    <p>Visão consolidada de datas do curso, treinamentos externos e eventos sincronizados.</p>
+                  </article>
+                  <article class="panel-card">
+                    <p class="eyebrow" style="color: #758092">Fila SMTP</p>
+                    <h3 class="mini-title">Cotas e prioridades</h3>
+                    <p>Controle de limite diário com priorização de usuários ativos e redefinição de senha.</p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="preview-pane" data-preview-pane="auth" hidden>
+            <div class="mock-window">
+              <div class="mock-bar">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                <span class="address">/knowledge/register</span>
+              </div>
+              <div class="mock-content">
+                <div class="auth-preview">
+                  <aside class="auth-side">
+                    <p class="eyebrow">Laboratório Virtual da OMM</p>
+                    <h2>Cursos em meteorologia por satélites</h2>
+                    <p class="hero-copy" style="font-size: 1rem">
+                      Missão do VLab com o mesmo texto institucional exibido na home pública.
+                    </p>
+                    <div class="topic-list">
+                      <span>GOES-R</span><span>Nowcasting</span><span>Webinars</span>
+                    </div>
+                  </aside>
+                  <article class="form-card">
+                    <p class="eyebrow" style="color: #758092">Criar acesso</p>
+                    <h3 class="section-title">Crie sua conta</h3>
+                    <div class="form-field"><label>Nome completo</label><span></span></div>
+                    <div class="form-field"><label>E-mail</label><span></span></div>
+                    <div class="form-field"><label>Senha</label><span></span></div>
+                    <div class="form-field"><label>Confirmar senha</label><span></span></div>
+                    <p><span class="primary-button">Criar conta e entrar</span></p>
+                  </article>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Prévia estática para GitHub Pages. Dados reais, login, APIs e SMTP ficam somente na aplicação Next.js.</span>
+        <span>Knowledge INPE / VLab</span>
+      </footer>
+    </div>
+    <script src="assets/github-pages-preview.js"></script>
+  </body>
+</html>
