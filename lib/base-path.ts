@@ -1,4 +1,4 @@
-export const APP_BASE_PATH = "/knowledge";
+export const APP_BASE_PATH = "/vlab";
 
 export function withBasePath(pathname: string) {
   if (
