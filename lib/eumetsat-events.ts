@@ -17,85 +17,46 @@ export type ExternalTrainingEvent = {
   languages: string[];
 };
 
-type EumetsatSolrDoc = {
-  [key: string]: unknown;
-  id?: string;
-  title?: string;
-  solrCollection?: string;
-  solrDocId?: string;
-  startDate?: string;
-  endDate?: string;
-  facet_contentTypes?: unknown;
-  uns_facet_unsMsgStatus?: unknown;
-  uns_facet_unsMsgType?: unknown;
-};
+const EVENTS_ENDPOINT = "https://trainingevents.eumetsat.int/trapi/resources/public/events";
+const FEED_TIMEOUT_MS = 20 * 1000;
 
-type EumetsatSolrResponse = {
-  response?: {
-    numFound?: number;
-    docs?: EumetsatSolrDoc[];
-  };
-};
-
-const EUMETSAT_PORTAL_ORIGIN = "https://user.eumetsat.int";
-const EVENTS_ENDPOINT = `${EUMETSAT_PORTAL_ORIGIN}/search/alias-all/eup-select?q.op=AND`;
-const CALENDAR_FILTER_QUERY =
-  'facet_contentTypes:"News" OR facet_contentTypes:"Events" OR solrCollection:"training-calendar-events" OR (solrCollection:"uns-announcements" AND uns_facet_unsMsgType:"Planned maintenance")';
-const SOLR_PAGE_SIZE = 1000;
-const SOLR_MAX_PAGES = 10;
-
-function asString(value: unknown) {
+function asString(value: unknown): string | null {
   if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length ? trimmed : null;
+    return value.trim() || null;
   }
 
-  if (typeof value === "number") {
-    return String(value);
-  }
-
-  return null;
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : null;
 }
 
-function firstString(value: unknown) {
-  if (Array.isArray(value)) {
-    for (const entry of value) {
-      const parsed = asString(entry);
-
-      if (parsed) {
-        return parsed;
-      }
-    }
-
-    return null;
-  }
-
-  return asString(value);
-}
-
-function stringList(value: unknown) {
-  if (Array.isArray(value)) {
-    return value.map((entry) => asString(entry)).filter((entry): entry is string => Boolean(entry));
-  }
-
-  const parsed = asString(value);
-  return parsed ? [parsed] : [];
-}
-
-function stripHtml(value: string | null) {
+function decodeXmlEntities(value: string) {
   return value
-    ?.replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim() ?? null;
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number.parseInt(code, 10)));
 }
 
-function extractFirstUrl(value: string | null) {
-  if (!value) {
-    return null;
+function cleanText(value: unknown): string | null {
+  const text = asString(value);
+
+  return text
+    ? decodeXmlEntities(text)
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() || null
+    : null;
+}
+
+function nestedValue(value: unknown): string | null {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return cleanText((value as Record<string, unknown>).value);
   }
 
-  const match = value.match(/https?:\/\/[^\s<>"')\]]+/i);
-  return normalizeExternalUrl(match?.[0] ?? null);
+  return cleanText(value);
 }
 
 function normalizeExternalUrl(value: string | null) {
@@ -111,205 +72,164 @@ function normalizeExternalUrl(value: string | null) {
   }
 }
 
-function addHoursIso(value: string, hours: number) {
-  const date = new Date(value);
-  date.setUTCHours(date.getUTCHours() + hours);
+function extractFirstUrl(value: unknown) {
+  const text = asString(value);
+  const match = text && decodeXmlEntities(text).match(/https?:\/\/[^\s<>"')\]]+/i);
+  return normalizeExternalUrl(match?.[0] ?? null);
+}
+
+function parseTrainingDate(value: unknown): string | null {
+  if ((typeof value !== "number" && typeof value !== "string") || value === "") {
+    return null;
+  }
+
+  const date = new Date(typeof value === "string" && /^\d+$/.test(value) ? Number(value) : value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+
   return date.toISOString();
 }
 
-function normalizePortalDate(value: string | null, collection: string) {
-  if (!value) {
+function mapTrainingJsonEvent(value: unknown): ExternalTrainingEvent | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
     return null;
   }
 
-  const dateOnly = value.match(/^(\d{4}-\d{2}-\d{2})T00:00:00(?:\.000)?Z$/);
+  const event = value as Record<string, unknown>;
+  const title = cleanText(event.title);
+  const start = parseTrainingDate(event.startDate);
+  const end = parseTrainingDate(event.endDate);
 
-  if (collection !== "uns-announcements" && dateOnly) {
-    return `${dateOnly[1]}T12:00:00.000Z`;
-  }
-
-  return value;
-}
-
-function getPortalLink(doc: EumetsatSolrDoc, collection: string) {
-  const solrDocId = asString(doc.solrDocId);
-
-  if (collection === "training-calendar-events" && solrDocId) {
-    return `${EUMETSAT_PORTAL_ORIGIN}/news-events/events/${solrDocId}`;
-  }
-
-  if (collection === "cms-events") {
-    const slug = asString(doc.cms_evt_slug) ?? solrDocId;
-    return slug ? `${EUMETSAT_PORTAL_ORIGIN}/news-events/events/${slug}` : null;
-  }
-
-  if (collection === "cms-news") {
-    const slug = asString(doc.cms_news_slug) ?? solrDocId;
-    return slug ? `${EUMETSAT_PORTAL_ORIGIN}/news-events/news/${slug}` : null;
-  }
-
-  if (collection === "uns-announcements" && solrDocId) {
-    return `${EUMETSAT_PORTAL_ORIGIN}/news-events/alerts-and-maintenance-notifications/${solrDocId}`;
-  }
-
-  return null;
-}
-
-function getResultType(doc: EumetsatSolrDoc, collection: string) {
-  if (collection === "training-calendar-events") {
-    return firstString(doc.tra_cal_events_eventType) ?? "Event";
-  }
-
-  if (collection === "uns-announcements") {
-    return firstString(doc.uns_facet_unsMsgType) ?? "Planned maintenance";
-  }
-
-  const contentType = firstString(doc.facet_contentTypes);
-
-  if (contentType) {
-    return contentType.split("|").at(-1) ?? contentType;
-  }
-
-  return collection === "cms-news" ? "News" : "Event";
-}
-
-function getFormat(doc: EumetsatSolrDoc, collection: string) {
-  if (collection === "uns-announcements" || collection === "cms-news") {
-    return "ONLINE";
-  }
-
-  const format = firstString(doc.tra_cal_events_format)?.toUpperCase();
-  const country = firstString(doc.tra_cal_events_country)?.toUpperCase();
-
-  if (format?.includes("ONLINE") || country?.includes("ONLINE")) {
-    return "ONLINE";
-  }
-
-  return "ONSITE";
-}
-
-function getSummary(doc: EumetsatSolrDoc, collection: string) {
-  if (collection === "training-calendar-events") {
-    return stripHtml(firstString(doc.tra_cal_events_summary));
-  }
-
-  if (collection === "cms-news") {
-    return stripHtml(firstString(doc.cms_news_summary));
-  }
-
-  if (collection === "cms-events") {
-    return stripHtml(firstString(doc.cms_evt_summary));
-  }
-
-  if (collection === "uns-announcements") {
-    return stripHtml(firstString(doc.uns_ann_text) ?? firstString(doc.uns_ann_impactName));
-  }
-
-  return null;
-}
-
-function parsePortalEvent(doc: EumetsatSolrDoc): ExternalTrainingEvent | null {
-  const collection = asString(doc.solrCollection) ?? "";
-  const title = asString(doc.title);
-  const startDate = normalizePortalDate(asString(doc.startDate), collection);
-
-  if (!collection || !title || !startDate) {
+  if (!title || !start || !end || end < start) {
     return null;
   }
 
-  const endDate = normalizePortalDate(asString(doc.endDate), collection) ?? addHoursIso(startDate, 1);
-  const registrationHowTo = firstString(doc.tra_cal_events_registrationHowto);
-  const contactUrl = normalizeExternalUrl(firstString(doc.tra_cal_events_contactUrl)) ?? getPortalLink(doc, collection);
-  const registrationUrl = extractFirstUrl(registrationHowTo) ?? getPortalLink(doc, collection);
+  // Keep date-only ranges on the same days in the Sao Paulo calendar.
+  const dateOnly = start.endsWith("T00:00:00.000Z") && end.endsWith("T00:00:00.000Z");
+  const startDate = dateOnly ? `${start.slice(0, 10)}T12:00:00.000Z` : start;
+  const endDate = dateOnly ? `${end.slice(0, 10)}T12:00:00.000Z` : end;
+  const country = event.country && typeof event.country === "object"
+    ? event.country as Record<string, unknown>
+    : null;
+  const city = cleanText(event.city);
+  const onlineLocation = [city, cleanText(country?.name), cleanText(country?.id), cleanText(event.country)]
+    .some((location) => location?.toUpperCase() === "ONLINE");
+  const eventId = asString(event.id);
+  const detailUrl = eventId ? `https://trainingevents.eumetsat.int/?id=${encodeURIComponent(eventId)}&page=details` : null;
 
   return {
-    id: asString(doc.solrDocId) ?? `${collection}-${asString(doc.id) ?? title}-${startDate}`,
+    id: eventId ?? `${title}-${startDate}`,
     title,
     startDate,
     endDate,
-    format: getFormat(doc, collection),
-    eventType: getResultType(doc, collection),
-    status:
-      firstString(doc.tra_cal_events_status_value) ??
-      firstString(doc.uns_facet_unsMsgStatus) ??
-      firstString(doc.cms_news_status) ??
-      "Scheduled",
-    attendance: firstString(doc.tra_cal_events_attendance_value) ?? firstString(doc.uns_ann_impactName),
-    city:
-      firstString(doc.tra_cal_events_city) ??
-      firstString(doc.tra_cal_events_location) ??
-      firstString(doc.uns_ann_opServText),
-    host: firstString(doc.tra_cal_events_host) ?? firstString(doc.uns_ann_opServGroupText) ?? "EUMETSAT",
-    contactUrl,
-    registrationUrl,
-    description: getSummary(doc, collection),
-    languages: stringList(doc.tra_cal_events_language),
+    format: onlineLocation || cleanText(event.format)?.toUpperCase().includes("ONLINE") ? "ONLINE" : "ONSITE",
+    eventType: nestedValue(event.eventType) ?? "Event",
+    status: nestedValue(event.status) ?? "Scheduled",
+    attendance: nestedValue(event.attendance),
+    city,
+    host: cleanText(event.host) ?? "EUMETSAT",
+    contactUrl: normalizeExternalUrl(asString(event.contactUrl)) ?? detailUrl,
+    registrationUrl: extractFirstUrl(event.registrationHowto),
+    description: cleanText(event.description) ?? cleanText(event.summary),
+    languages: (Array.isArray(event.language) ? event.language : [event.language])
+      .map(nestedValue)
+      .filter((language): language is string => Boolean(language)),
   };
 }
 
-function getPortalWindow() {
-  const now = new Date();
-  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 12, 1, 0, 0, 0, 0));
-  const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 19, 0, 23, 59, 59, 999));
-
-  return { from, to };
+function xmlValues(block: string, tag: string): string[] {
+  return Array.from(block.matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "g")))
+    .map((match) => match[1]);
 }
 
-async function fetchPortalCalendarDocs() {
-  const { from, to } = getPortalWindow();
-  const rangeQuery = `startDate:[${from.toISOString()} TO ${to.toISOString()}] OR endDate:[${from.toISOString()} TO ${to.toISOString()}]`;
-  const docs: EumetsatSolrDoc[] = [];
+function xmlValue(block: string, tag: string) {
+  // The event fields precede metadata, whose nested tags can reuse these names.
+  return xmlValues(block, tag)[0] ?? null;
+}
 
-  for (let page = 0; page < SOLR_MAX_PAGES; page += 1) {
-    const response = await fetch(EVENTS_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        limit: SOLR_PAGE_SIZE,
-        offset: page * SOLR_PAGE_SIZE,
-        sort: "startDate asc",
-        filter: [CALENDAR_FILTER_QUERY, rangeQuery],
-      }),
-      next: {
-        revalidate: 60 * 60 * 6,
-      },
-    });
+function mapTrainingXmlEvent(block: string): ExternalTrainingEvent | null {
+  const nested = (tag: string, key = "value") => xmlValue(xmlValue(block, tag) ?? "", key);
 
-    if (!response.ok) {
-      throw new Error(`Falha ao carregar eventos externos (${response.status}).`);
+  return mapTrainingJsonEvent({
+    // XML contains nested IDs, so use the title/date fallback for a stable ID.
+    title: xmlValue(block, "title"),
+    startDate: cleanText(xmlValue(block, "startDate")),
+    endDate: cleanText(xmlValue(block, "endDate")),
+    format: xmlValue(block, "format"),
+    eventType: nested("eventType"),
+    status: nested("status"),
+    attendance: nested("attendance"),
+    city: xmlValue(block, "city"),
+    country: { name: nested("country", "name"), id: nested("country", "id") },
+    host: xmlValue(block, "host"),
+    contactUrl: cleanText(xmlValue(block, "contactUrl")),
+    registrationHowto: xmlValue(block, "registrationHowto"),
+    description: xmlValue(block, "description"),
+    summary: xmlValue(block, "summary"),
+    language: xmlValues(block, "language").map((language) => xmlValue(language, "value")),
+  });
+}
+
+function parseTrainingFeed(body: string): ExternalTrainingEvent[] {
+  const content = body.trim();
+  let events: (ExternalTrainingEvent | null)[];
+
+  if (content.startsWith("[") || content.startsWith("{")) {
+    const payload: unknown = JSON.parse(content);
+
+    if (!Array.isArray(payload)) {
+      throw new Error("Formato JSON inesperado no calendario EUMETSAT: esperada uma lista.");
     }
 
-    const payload = (await response.json()) as EumetsatSolrResponse;
-    const pageDocs = payload.response?.docs ?? [];
-    docs.push(...pageDocs);
-
-    const total = payload.response?.numFound ?? docs.length;
-
-    if (docs.length >= total || pageDocs.length === 0) {
-      break;
+    events = payload.map(mapTrainingJsonEvent);
+  } else {
+    const xml = content.replace(/^<\?xml\b[^?]*\?>\s*/, "");
+    if (/^<events\s*\/>$/.test(xml)) {
+      return [];
     }
+
+    const body = xml.match(/^<events(?:\s[^>]*)?>([\s\S]*)<\/events>$/)?.[1];
+    const eventPattern = /<event>([\s\S]*?)<\/event>/g;
+    if (body === undefined || body.replace(eventPattern, "").trim()) {
+      throw new Error("Formato inesperado no calendario EUMETSAT.");
+    }
+
+    events = Array.from(body.matchAll(eventPattern))
+      .map((match) => mapTrainingXmlEvent(match[1]));
   }
 
-  return docs;
+  const seen = new Set<string>();
+
+  return events
+    .filter((event): event is ExternalTrainingEvent => Boolean(event))
+    .sort((left, right) => new Date(left.startDate).getTime() - new Date(right.startDate).getTime())
+    .filter((event) => {
+      const key = JSON.stringify([event.title, event.startDate]);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
 }
 
 export const getPublicTrainingEvents = cache(async () => {
-  const events = (await fetchPortalCalendarDocs())
-    .map((doc) => parsePortalEvent(doc))
-    .filter((event): event is ExternalTrainingEvent => Boolean(event))
-    .sort((left, right) => new Date(left.startDate).getTime() - new Date(right.startDate).getTime());
-
-  const seenEventIds = new Set<string>();
-
-  return events.filter((event) => {
-    if (seenEventIds.has(event.id)) {
-      return false;
-    }
-
-    seenEventIds.add(event.id);
-    return true;
+  const response = await fetch(EVENTS_ENDPOINT, {
+    headers: {
+      Accept: "application/json,application/xml;q=0.9,text/xml;q=0.8",
+    },
+    // The raw response exceeds Next.js's data-cache limit. Cache the mapped events instead.
+    cache: "no-store",
+    signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
   });
+
+  if (!response.ok) {
+    throw new Error(`Falha ao carregar eventos externos (${response.status}).`);
+  }
+
+  return parseTrainingFeed(await response.text());
 });

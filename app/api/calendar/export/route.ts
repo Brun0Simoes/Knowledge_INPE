@@ -6,7 +6,7 @@ import { buildCalendarExportIcs, getCalendarEvents } from "@/lib/calendar-events
 import { filterCalendarEvents } from "@/lib/calendar-shared";
 
 const exportQuerySchema = z.object({
-  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).optional(),
   source: z.enum(["ALL", "EUMETSAT", "INPE", "PLATFORM"]).optional(),
   format: z.enum(["ALL", "ONLINE", "ONSITE"]).optional(),
 });

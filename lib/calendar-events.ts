@@ -13,7 +13,9 @@ const CALENDAR_CACHE_TTL_MS = 5 * 60 * 1000;
 
 type CalendarCacheState = {
   events: CalendarEvent[] | null;
+  externalEvents: CalendarEvent[];
   updatedAt: number;
+  lastRefreshAt: number;
   refreshPromise: Promise<CalendarEvent[]> | null;
 };
 
@@ -146,7 +148,9 @@ function getCalendarCache() {
   if (!globalForCalendar.__knowledgeCalendarCache) {
     globalForCalendar.__knowledgeCalendarCache = {
       events: null,
+      externalEvents: [],
       updatedAt: 0,
+      lastRefreshAt: 0,
       refreshPromise: null,
     };
   }
@@ -154,15 +158,19 @@ function getCalendarCache() {
   return globalForCalendar.__knowledgeCalendarCache;
 }
 
-async function loadCalendarEventsFresh() {
-  // External feed failures should not hide platform releases, so the external
-  // branch degrades to an empty list instead of failing the whole payload.
+async function loadCalendarEventsFresh(cache: CalendarCacheState) {
+  // Keep the last successful feed while allowing platform courses to refresh.
   const [platformEvents, externalEvents] = await Promise.all([
     getPlatformCalendarEvents(),
-    getExternalCalendarEvents().catch(() => []),
+    getExternalCalendarEvents().catch(() => null),
   ]);
 
-  return [...platformEvents, ...externalEvents].sort(
+  if (externalEvents !== null) {
+    cache.externalEvents = externalEvents;
+    cache.updatedAt = Date.now();
+  }
+
+  return [...platformEvents, ...cache.externalEvents].sort(
     (left, right) => new Date(left.startDate).getTime() - new Date(right.startDate).getTime(),
   );
 }
@@ -171,10 +179,10 @@ async function refreshCalendarCache() {
   const cache = getCalendarCache();
 
   if (!cache.refreshPromise) {
-    cache.refreshPromise = loadCalendarEventsFresh()
+    cache.lastRefreshAt = Date.now();
+    cache.refreshPromise = loadCalendarEventsFresh(cache)
       .then((events) => {
         cache.events = events;
-        cache.updatedAt = Date.now();
         return events;
       })
       .finally(() => {
@@ -191,9 +199,9 @@ export async function getCalendarEvents() {
 
   // Serve the cached payload immediately and refresh in the background when the
   // TTL expires. This keeps dashboard navigation fast.
-  if (cache.events?.length) {
-    if (now - cache.updatedAt > CALENDAR_CACHE_TTL_MS) {
-      void refreshCalendarCache();
+  if (cache.events !== null) {
+    if (now - cache.lastRefreshAt > CALENDAR_CACHE_TTL_MS) {
+      void refreshCalendarCache().catch(() => undefined);
     }
 
     return cache.events;
@@ -210,7 +218,6 @@ export function getCalendarEventsLastUpdatedAt() {
 export function invalidateCalendarEventsCache() {
   const cache = getCalendarCache();
   cache.events = null;
-  cache.updatedAt = 0;
 }
 
 export function buildCalendarExportIcs(events: CalendarEvent[], origin: string) {
